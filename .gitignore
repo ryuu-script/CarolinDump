@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Other package managers' lockfiles
+yarn.lock
+pnpm-lock.yaml
+
+# Test, build, and cache leftovers
+coverage
+.vite
+*.tsbuildinfo
+
+# OS files
+Thumbs.db
