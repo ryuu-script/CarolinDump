@@ -4,9 +4,9 @@
 
 # CarolinDump
 
-**Find a restroom. Check its status. Report problems. All in one place.**
+**With CarolinDump, you'll never have to poop in an old, run-down-looking, under-maintained bathroom ever again.**
 
-A campus restroom locator and reporting web app for Carolinians, hosted on the DCISM server.
+A DCISM-hosted web application that tracks all the comfort rooms in The University of San Carlos - Talamban Campus, and allows students to rate their experience after using the a certain bathroom.
 
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
@@ -21,14 +21,11 @@ A campus restroom locator and reporting web app for Carolinians, hosted on the D
 ## Table of Contents
 
 - [About](#about)
+- [Screenshots](#screenshots)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started (Contributors)](#getting-started-contributors)
-- [Available Scripts](#available-scripts)
-- [Contribution Workflow](#contribution-workflow)
-- [Deployment (DCISM Server)](#deployment-dcism-server)
-- [Roadmap](#roadmap)
 - [Troubleshooting](#troubleshooting)
 - [Developers](#developers)
 
@@ -36,41 +33,23 @@ A campus restroom locator and reporting web app for Carolinians, hosted on the D
 
 ## About
 
-CarolinDump helps students find nearby restroom facilities on campus, see whether they are usable, and report problems such as clogged toilets or missing supplies. Administrators get their own view to keep track of and resolve those reports.
+CarolinDump helps students find nearby restroom facilities on campus, and see whether they are usable. Administrators get their own view to keep track and verify review submissions of USC students.
 
 The application has two roles, **Student** and **Admin**, chosen from the welcome screen.
 
+## Screenshots
+
+TBA
+
 ## Features
 
-Status legend: ✅ implemented, 🚧 in progress or planned.
-
-### Core
-
 | Feature | Description | Status |
 | --- | --- | :---: |
-| Welcome screen | Branded landing page with logo, title, and role selection | ✅ |
-| Role selection | Choose between **Student** and **Admin** entry points | ✅ |
-| Animated loading screen | Progress bar with rotating status messages between page transitions | ✅ |
-| Safe redirects | The loading page only accepts in-app paths (`/loading?to=/student`), so links cannot send users to external sites | ✅ |
-| Contributor setup script | One command (`setup.sh`) to pull, install, and verify the environment | ✅ |
-
-### Student
-
-| Feature | Description | Status |
-| --- | --- | :---: |
-| Restroom locator | Browse restroom locations across campus buildings | 🚧 |
-| Availability | See the number of available stalls | 🚧 |
-| Supply status | Check whether toilet paper and other supplies are available | 🚧 |
-| Issue reporting | Report clogged toilets and other problems | 🚧 |
-
-### Admin
-
-| Feature | Description | Status |
-| --- | --- | :---: |
-| Report dashboard | View and manage student-submitted reports | 🚧 |
-| Restroom management | Add, edit, and update restroom entries and their status | 🚧 |
-
-> The Student and Admin dashboards currently render placeholder pages. See the [Roadmap](#roadmap).
+| Welcome screen | Branded landing page with logo, title, and role selection | ✔ |
+| Role selection | Choose between **Student** and **Admin** entry points | ✔ |
+| Animated loading screen | Progress bar with rotating status messages between page transitions | ✔ |
+| Safe redirects | The loading page only accepts in-app paths (`/loading?to=/student`), so links cannot send users to external sites | ✔ |
+| Contributor setup script | One command (`setup.sh`) to pull, install, and verify the environment | ✔ |
 
 ## Tech Stack
 
@@ -83,7 +62,7 @@ Status legend: ✅ implemented, 🚧 in progress or planned.
 | Language | JavaScript (JSX) |
 | Styling | Plain CSS, one stylesheet per component (`src/stylesheets/`) |
 | Tooling | Bash setup script, npm |
-| Hosting | DCISM school server |
+| Hosting | DCISM Server |
 
 ## Project Structure
 
@@ -174,127 +153,12 @@ npm install
 npm run dev
 ```
 
-## Available Scripts
-
-| Script | Command | Description |
-| --- | --- | --- |
-| Dev server | `npm run dev` | Start Vite with hot module replacement |
-| Build | `npm run build` | Create a production build in `dist/` |
-| Preview | `npm run preview` | Serve the production build locally |
-| Lint | `npm run lint` | Run Oxlint across the project |
-
-## Contribution Workflow
-
-1. **Sync** your local `main` branch: `git checkout main && git pull`.
-2. **Branch** off `main` using a descriptive name:
-   ```bash
-   git checkout -b feat/student-restroom-list
-   ```
-   Suggested prefixes: `feat/`, `fix/`, `chore/`, `docs/`.
-3. **Code** your change. Keep components in `src/components/`, pages in `src/pages/`, and give each component its own stylesheet in `src/stylesheets/`.
-4. **Lint** before committing: `npm run lint`.
-5. **Commit** using [Conventional Commits](https://www.conventionalcommits.org/), as in the existing history:
-   ```
-   feat: add restroom list to student dashboard
-   fix: correct redirect on loading page
-   chore: update dependencies
-   docs: expand setup guide
-   ```
-6. **Push** your branch and open a **Pull Request** into `main`. Describe what changed and how to test it.
-7. **Review:** at least one other developer should review and approve before merging.
-
-### Guidelines
-
-- Do not commit `.env` files, `node_modules`, or `dist/`. They are already in `.gitignore`.
-- Use **npm** only. Yarn and pnpm lockfiles are git-ignored to avoid conflicts.
-- If you add a dependency, commit both `package.json` and `package-lock.json`. Do this on your own machine, not by editing them on the server.
-- File names are case-sensitive on the Linux server, so match the exact casing of imports (for example, `Main.jsx`).
-
-## Deployment (DCISM Server)
-
-CarolinDump is deployed to the school's **DCISM server**. Vite builds the front end into static files, which the server then serves.
-
-> Replace the bracketed values below with the details for your DCISM account.
-
-### 1. Build
-
-```bash
-npm ci
-npm run build
-```
-
-This produces the production files in `dist/`.
-
-### 2. Upload
-
-Copy the contents of `dist/` to your web root on the server:
-
-```bash
-scp -r dist/* <username>@<dcism-server-host>:<web-root-path>/
-```
-
-### 3. Configure single-page app routing
-
-React Router handles routes like `/student` and `/admin` in the browser, so the server must fall back to `index.html` for unknown paths. Otherwise, refreshing the page on `/student` returns a 404.
-
-**Nginx**
-
-```nginx
-location / {
-    try_files $uri $uri/ /index.html;
-}
-```
-
-**Apache** (`.htaccess` in the web root)
-
-```apache
-RewriteEngine On
-RewriteBase /
-RewriteRule ^index\.html$ - [L]
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /index.html [L]
-```
-
-### 4. Hosting under a sub-path
-
-If the app is served from a sub-path (for example `https://<dcism-host>/~carolindump/`), set `base` in `vite.config.js` and add a matching `basename` to `BrowserRouter` before building:
-
-```js
-// vite.config.js
-export default defineConfig({
-  base: '/~carolindump/',
-  // ...
-})
-```
-
-### Server checklist
-
-- [ ] Node.js 20+ is available if you build on the server (otherwise build locally and upload `dist/`)
-- [ ] Web server is configured with the SPA fallback above
-- [ ] HTTPS is enabled if the server supports it
-- [ ] Environment variables (once a backend exists) are set on the server, never committed to Git
-
-## Roadmap
-
-- [x] Project scaffolding with React, Vite, and React Router
-- [x] Welcome page, role selection, and loading screen
-- [x] Contributor setup script
-- [ ] Student dashboard: restroom list, stall availability, supply status
-- [ ] Issue reporting form
-- [ ] Admin dashboard: report management and restroom updates
-- [ ] Authentication and role-based access
-- [ ] Backend API and database on the DCISM server
-- [ ] Automated tests
-- [ ] Production deployment
-
 ## Troubleshooting
 
 | Problem | Fix |
 | --- | --- |
 | `Invalid hook call` / two copies of React | Delete stray `node_modules` or `package.json` in parent folders, then run `npm dedupe` and `npm ls react` |
 | `setup.sh` skips `git pull` | You have local changes. Commit them or run `git stash`, then run the script again |
-| Blank page after deploying, 404 on refresh | Add the SPA fallback shown in [Deployment](#deployment-dcism-server) |
 | Import works on Windows but fails on the server | Filename casing mismatch. Match the exact casing (Linux is case-sensitive) |
 | Weird cached behavior in dev | Run `bash setup.sh --reinstall` or delete `node_modules/.vite` |
 | `Node vX is old` warning | Upgrade to Node 20 or newer |
@@ -303,7 +167,7 @@ export default defineConfig({
 
 | # | Name | Role | GitHub |
 | :---: | --- | --- | --- |
-| 1 | _Full Name_ | _e.g. Project Lead / Full-Stack_ | [@ryuu-script](https://github.com/ryuu-script) |
+| 1 | _Salang, Christian Jule O._ | _Project Lead / Full-Stack_ | [@ryuu-script](https://github.com/ryuu-script) |
 | 2 | _Full Name_ | _e.g. Front-End Developer_ | [@username](https://github.com/username) |
 | 3 | _Full Name_ | _e.g. Back-End Developer_ | [@username](https://github.com/username) |
 | 4 | _Full Name_ | _e.g. UI/UX and QA_ | [@username](https://github.com/username) |
