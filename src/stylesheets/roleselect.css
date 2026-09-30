@@ -1,0 +1,82 @@
+.role-select {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--u);
+    width: 100%;
+    padding-top: var(--u);
+}
+
+.role-title {
+    font-size: calc(var(--u) * 1.2);
+    color: var(--text);
+}
+
+/* Side by side by default */
+.role-options {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: var(--u);
+    width: 100%;
+}
+
+.role-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 1 calc(var(--u) * 16); /* shrinks evenly as the screen narrows */
+    min-width: 0;
+    aspect-ratio: 2 / 1;
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.1);
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--btn-text);
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 1.1);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+/* Hover effects only on devices that actually hover (not touch) */
+@media (hover: hover) {
+    .role-button:hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--on-accent);
+        box-shadow: var(--shadow);
+        transform: scale(1.06);
+    }
+}
+
+.role-button:active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    transform: scale(0.97);
+}
+
+.role-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+/* Stack only when two buttons no longer fit comfortably */
+@media (max-width: 420px) {
+    .role-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    .role-button {
+        flex: none;
+        width: min(100%, calc(var(--u) * 20));
+        aspect-ratio: 3 / 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .role-button { transition: none; transform: none !important; }
+}

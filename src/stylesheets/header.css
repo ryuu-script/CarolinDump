@@ -1,0 +1,22 @@
+.header-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    letter-spacing: normal;
+}
+
+.header-welcome {
+    font-size: calc(var(--u) * 1.2);
+    font-weight: 400;
+    color: var(--text);
+}
+
+.header-name {
+    font-size: calc(var(--u) * 3.5);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-h);
+    overflow-wrap: anywhere; /* long names never overflow a phone */
+}

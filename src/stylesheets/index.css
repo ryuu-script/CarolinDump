@@ -1,0 +1,71 @@
+/* ---------- Tokens ---------- */
+:root {
+  --text: #6b6375;
+  --text-h: #08060d;
+  --bg: #fff;
+  --border: #e5e4e7;
+  --accent: #e0a000;
+  --on-accent: #08060d;
+  --btn-bg: #1d1d1d;
+  --btn-text: #fff;
+  --shadow:
+    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+
+  /*
+   * ONE scale unit drives every size on the page (logo, title, buttons,
+   * gaps). Change --u and everything resizes together, in proportion.
+   * Smooth at every width: 13px minimum, 20px maximum, no jumps at breakpoints.
+   */
+  --u: clamp(13px, 0.9vw + 6px, 20px);
+
+  font: 18px/145% var(--sans);
+  letter-spacing: 0.18px;
+  color-scheme: light dark;
+  color: var(--text);
+  background: var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #16171d;
+    --border: #2e303a;
+    --accent: #fbbf24;
+    --btn-bg: #262832;
+  }
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body { margin: 0; }
+
+#root {
+  width: 100%;
+  max-width: 1126px;
+  min-height: 100svh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  border-inline: 1px solid var(--border);
+}
+
+@media (max-width: 1160px) {
+  #root { border-inline: 0; }
+}
+
+h1 {
+  font-family: var(--sans);
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+p { margin: 0; }

@@ -1,0 +1,13 @@
+.welcomePage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 0.75);
+    padding: calc(var(--u) * 2) calc(var(--u) * 1.25);
+    
+    /* keep clear of notches / home bar on phones */
+    padding-top: max(calc(var(--u) * 2), env(safe-area-inset-top));
+    padding-bottom: max(calc(var(--u) * 2), env(safe-area-inset-bottom));
+}
