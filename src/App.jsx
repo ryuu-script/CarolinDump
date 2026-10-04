@@ -2,20 +2,24 @@ import { Routes, Route } from 'react-router-dom'
 
 import WelcomePage from './pages/WelcomePage.jsx'
 import LoadingPage from './pages/LoadingPage.jsx'
+import Dashboard from './pages/Dashboard.jsx'
 
 import "./stylesheets/app.css"
 
 // Replace with real pages.
-const StudentPage = () => <h1>Student page</h1>
-const AdminPage = () => <h1>Admin page</h1>
+const PlaceholderPage = ({ title = "Placeholder page" }) => <h1>{title}</h1>
 
 function App() {
     return (
         <Routes>
             <Route path="/" element={<WelcomePage />} />
             <Route path="/loading" element={<LoadingPage />} />
-            <Route path="/student" element={<StudentPage />} />
-            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/student" element={<Dashboard role="student" />} />
+            <Route path="/admin" element={<Dashboard role="admin" />} />
+            <Route path="/reviews" element={<PlaceholderPage title="User reviews" />} />
+            <Route path="/reviews/submit" element={<PlaceholderPage title="Submit review" />} />
+            <Route path="/sudo" element={<PlaceholderPage title="Sudo" />} />
+            <Route path="/placeholder" element={<PlaceholderPage />} />
         </Routes>
     );
 }

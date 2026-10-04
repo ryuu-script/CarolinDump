@@ -1,0 +1,22 @@
+.dashboard {
+    --panel-w: calc(var(--u) * 15);   /* sidebar width */
+    --gap: calc(var(--u) * 0.75);     /* space between the floating sidebar and the screen edge */
+    --sidebar-w: calc(var(--panel-w) + var(--gap) * 2); /* space the map leaves free on the left */
+}
+
+/* The map is drawn full screen, so the heading is only for screen readers. */
+.dashboard-heading {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* Phones: the sidebar becomes a hamburger menu, so the map gets the whole screen. */
+@media (max-width: 768px) {
+    .dashboard { --sidebar-w: 0px; }
+}

@@ -1,0 +1,192 @@
+/* ---------- Sidebar (wide screens): a rounded panel floating over the map ---------- */
+.dash-sidebar {
+    position: fixed;
+    /* the gap on every side is what makes it float; also keeps clear of notches / home bar */
+    top: max(var(--gap, 12px), env(safe-area-inset-top));
+    bottom: max(var(--gap, 12px), env(safe-area-inset-bottom));
+    left: max(var(--gap, 12px), env(safe-area-inset-left));
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 1.5);
+    width: var(--panel-w, calc(var(--u) * 15));
+    padding: calc(var(--u) * 1.5) var(--u);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 1.2);
+    box-shadow: var(--shadow);
+}
+
+.dash-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 0.5);
+}
+
+.dash-title {
+    font-size: calc(var(--u) * 1.6);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-h);
+    overflow-wrap: anywhere;
+}
+
+.dash-menu {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 0.6);
+}
+
+/* Sudo sits at the bottom of the sidebar */
+.dash-bottom {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    padding-top: var(--u);
+    border-top: 1px solid var(--border);
+}
+
+/* ---------- Buttons (same look as the role buttons) ---------- */
+.dash-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: calc(var(--u) * 3);
+    padding: 0 var(--u);
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.1);
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--btn-text);
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 0.8);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
+}
+
+/* Hover effects only on devices that actually hover (not touch) */
+@media (hover: hover) {
+    .dash-button:not(:disabled):hover {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--on-accent);
+        box-shadow: var(--shadow);
+        transform: scale(1.04);
+    }
+}
+
+.dash-button:not(:disabled):active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    transform: scale(0.97);
+}
+
+.dash-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.dash-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ---------- Hamburger (hidden on wide screens) ---------- */
+.dash-toggle,
+.dash-backdrop {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .dash-toggle {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        position: fixed;
+        top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5); /* nudged down */
+        left: calc(max(var(--u), env(safe-area-inset-left)) + var(--u) * 0.5); /* nudged right, clear of the panel's rounded corner */
+        z-index: 40;
+        width: max(44px, calc(var(--u) * 2.8));
+        height: max(44px, calc(var(--u) * 2.8));
+        padding: 0;
+        color: var(--btn-text);
+        background: var(--btn-bg);
+        border: 1px solid var(--border);
+        border-radius: calc(var(--u) * 0.5);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .dash-toggle-bar {
+        width: calc(var(--u) * 1.2);
+        height: 2px;
+        background: currentColor;
+        transition: transform 0.2s, opacity 0.2s;
+    }
+
+    /* The three bars turn into an X while the menu is open */
+    .dash-toggle[aria-expanded="true"] .dash-toggle-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .dash-toggle[aria-expanded="true"] .dash-toggle-bar:nth-child(2) { opacity: 0; }
+    .dash-toggle[aria-expanded="true"] .dash-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .dash-toggle:active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--on-accent);
+    }
+
+    .dash-toggle:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    /* The sidebar becomes a panel that slides in from the left */
+    .dash-sidebar {
+        z-index: 30;
+        width: min(calc(var(--u) * 20), 85vw);
+        /* leave room for the hamburger button, which stays on top */
+        padding-top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5 + max(44px, calc(var(--u) * 2.8)) + var(--u));
+        transform: translateX(calc(-100% - var(--gap, 12px) * 2)); /* fully off screen, shadow included */
+        visibility: hidden; /* closed panel is skipped by Tab and screen readers */
+        transition: transform 0.25s ease, visibility 0s linear 0.25s;
+    }
+
+    .dash-sidebar.is-open {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.25s ease, visibility 0s;
+    }
+
+    /* Dimmed area behind the panel. Tap it to close. */
+    .dash-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background: rgba(0, 0, 0, 0.5);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s, visibility 0s linear 0.25s;
+    }
+
+    .dash-backdrop.is-open {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.25s, visibility 0s;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-button, .dash-toggle, .dash-toggle-bar,
+    .dash-sidebar, .dash-backdrop { transition: none; }
+    .dash-button { transform: none !important; }
+}
