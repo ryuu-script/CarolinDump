@@ -318,7 +318,7 @@ function DashElements({ role = "student" }) {
 
                 {access.sudo && (
                     <div className="dash-bottom">
-                        <MenuItem to={PATHS.sudo} icon={ICONS.sudo} hue="red" onNavigate={close}>Sudo</MenuItem>
+                        <MenuItem to={PATHS.sudo} icon={ICONS.sudo} hue="red" onNavigate={close}>Sudo Mode</MenuItem>
                     </div>
                 )}
             </aside>

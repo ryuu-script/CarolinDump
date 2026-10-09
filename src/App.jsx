@@ -26,7 +26,7 @@ function App() {
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/reviews" element={<PlaceholderPage title="User reviews" />} />
                 <Route path="/reviews/submit" element={<PlaceholderPage title="Submit review" />} />
-                <Route path="/sudo" element={<PlaceholderPage title="Sudo" />} />
+                <Route path="/sudo" element={<PlaceholderPage title="Sudo Mode" />} />
                 <Route path="/placeholder" element={<PlaceholderPage />} />
             </Routes>
             )}
