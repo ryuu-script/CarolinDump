@@ -171,6 +171,29 @@ if grep -q "/src/main.jsx" index.html 2>/dev/null && ! ls src | grep -qx "main.j
     warn "index.html loads src/main.jsx but the file is named differently (check capital letters)."
 fi
 
+# 9. Environment file: holds the Google sign-in client ID. It is gitignored, so every machine needs its own.
+ENV_FILE=".env"
+if [ ! -f "$ENV_FILE" ]; then
+    cat > "$ENV_FILE" <<'ENV'
+# Google OAuth "Web application" client ID (Google Cloud Console > APIs & Services > Credentials).
+# Authorized redirect URI to add there: <your site>/auth/callback
+# e.g. http://localhost:5173/auth/callback
+VITE_GOOGLE_CLIENT_ID=
+ENV
+    ok "Created .env (client ID left blank)"
+elif ! grep -q '^VITE_GOOGLE_CLIENT_ID=' "$ENV_FILE"; then
+    # .env exists but doesn't have the variable yet; add it without touching anything else
+    printf '\nVITE_GOOGLE_CLIENT_ID=\n' >> "$ENV_FILE"
+    ok "Added a blank VITE_GOOGLE_CLIENT_ID to your existing .env"
+fi
+
+if grep -Eq '^VITE_GOOGLE_CLIENT_ID=[[:space:]]*$' "$ENV_FILE"; then
+    warn "VITE_GOOGLE_CLIENT_ID in .env is blank, so Google sign-in won't work yet."
+    warn "Paste your client ID after the = sign, then restart the dev server."
+else
+    ok ".env has a Google client ID"
+fi
+
 echo
 ok "Setup complete"
 
