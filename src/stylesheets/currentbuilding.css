@@ -47,6 +47,14 @@
     border-bottom: 1px solid var(--border);
 }
 
+/* Back button and the bathroom count sit together on the left */
+.building-toolbar-start {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 0.75);
+    min-width: 0;
+}
+
 .building-count {
     font-size: calc(var(--u) * 1);
     color: var(--muted);
@@ -129,4 +137,21 @@
 
 @media (prefers-reduced-motion: reduce) {
     .building-button { transition: none; transform: none !important; }
+}
+
+/* Round "X" button that closes the page and goes back to the map */
+.building-back {
+    width: calc(var(--u) * 2.6);
+    height: calc(var(--u) * 2.6);
+    padding: 0;
+    border-radius: 50%;
+}
+
+.building-back-icon {
+    width: 55%;
+    height: 55%;
+}
+
+@media (pointer: coarse) {
+    .building-back { width: 44px; height: 44px; }
 }

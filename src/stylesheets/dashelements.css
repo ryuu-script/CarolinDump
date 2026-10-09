@@ -205,3 +205,199 @@
     .dash-button, .dash-toggle, .dash-toggle-bar,
     .dash-sidebar, .dash-backdrop { transition: none; }
 }
+
+/* ---------- Account pill (top right): Guest / email / Admin ---------- */
+.dash-account {
+    position: fixed;
+    top: max(var(--gap, 12px), env(safe-area-inset-top));
+    right: max(var(--gap, 12px), env(safe-area-inset-right));
+    z-index: 20;
+    max-width: calc(100vw - var(--gap, 12px) * 2);
+}
+
+.dash-pill {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 0.6);
+    max-width: 100%;
+    min-height: max(40px, calc(var(--u) * 3));
+    padding: 4px calc(var(--u) * 1.1) 4px 4px;
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.05);
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.dash-pill.is-signed-in { border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
+.dash-pill.is-admin { border-color: color-mix(in srgb, var(--red) 45%, var(--border)); }
+.dash-pill.is-admin .dash-pill-label { color: var(--red); }
+
+.dash-pill-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* long emails get "..." instead of growing the pill */
+}
+
+.dash-avatar {
+    flex: none;
+    width: max(32px, calc(var(--u) * 2.4));
+    height: max(32px, calc(var(--u) * 2.4));
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-0);
+}
+
+@media (hover: hover) {
+    .dash-pill:hover { background: color-mix(in srgb, var(--lavender) 12%, var(--bg)); }
+}
+
+.dash-pill:active { background: color-mix(in srgb, var(--lavender) 22%, var(--bg)); }
+
+.dash-pill:focus-visible {
+    outline: 2px solid var(--lavender);
+    outline-offset: 2px;
+}
+
+/* Sign-out menu under the pill */
+.dash-popover {
+    position: absolute;
+    top: calc(100% + calc(var(--u) * 0.5));
+    right: 0;
+    min-width: calc(var(--u) * 11);
+    padding: calc(var(--u) * 0.5);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 1.2);
+    box-shadow: var(--shadow);
+}
+
+/* Small message under the pill (e.g. sign-in not configured) */
+.dash-notice {
+    position: fixed;
+    top: calc(max(var(--gap, 12px), env(safe-area-inset-top)) + max(40px, calc(var(--u) * 3)) + var(--u) * 0.6);
+    right: max(var(--gap, 12px), env(safe-area-inset-right));
+    z-index: 20;
+    max-width: min(calc(var(--u) * 22), calc(100vw - var(--gap, 12px) * 2));
+    padding: calc(var(--u) * 0.7) calc(var(--u) * 1);
+    font-size: calc(var(--u) * 0.95);
+    text-align: left;
+    color: var(--red);
+    background: var(--bg);
+    border: 1px solid color-mix(in srgb, var(--red) 45%, var(--border));
+    border-radius: calc(var(--u) * 0.8);
+    box-shadow: var(--shadow);
+}
+
+.dash-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* ---------- "Sign in first" dialog ---------- */
+.dash-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60; /* above the hamburger (40) and the mobile panel (30) */
+    display: grid;
+    place-items: center;
+    padding: calc(var(--u) * 1.25);
+    background: rgba(17, 17, 27, 0.7);
+}
+
+.dash-modal {
+    width: min(calc(var(--u) * 26), 100%);
+    padding: calc(var(--u) * 1.75);
+    text-align: left;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 1.2);
+    box-shadow: var(--shadow);
+}
+
+.dash-modal-title {
+    margin: 0 0 calc(var(--u) * 0.6);
+    font-size: calc(var(--u) * 1.6);
+    line-height: 1.2;
+    color: var(--text-h);
+}
+
+.dash-modal-text {
+    font-size: calc(var(--u) * 1.05);
+    color: var(--muted);
+}
+
+.dash-modal-error {
+    margin-top: calc(var(--u) * 0.8);
+    font-size: calc(var(--u) * 0.95);
+    color: var(--red);
+}
+
+.dash-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 0.6);
+    margin-top: calc(var(--u) * 1.4);
+}
+
+.dash-modal-button {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 0 calc(var(--u) * 1.4);
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.05);
+    font-weight: 500;
+    color: var(--text);
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s;
+}
+
+.dash-modal-button.is-primary {
+    color: var(--on-accent);
+    background: var(--lavender);
+    border-color: var(--lavender);
+}
+
+@media (hover: hover) {
+    .dash-modal-button:not(.is-primary):hover { background: var(--surface-1); }
+    .dash-modal-button.is-primary:hover { background: color-mix(in srgb, var(--lavender) 85%, white); }
+}
+
+.dash-modal-button:focus-visible {
+    outline: 2px solid var(--lavender);
+    outline-offset: 2px;
+}
+
+/* Phones: sit level with the hamburger button, and leave room for it on the left */
+@media (max-width: 768px) {
+    .dash-account {
+        top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5);
+        right: calc(max(var(--u), env(safe-area-inset-right)) + var(--u) * 0.5);
+        max-width: calc(100vw - max(44px, calc(var(--u) * 2.8)) - var(--u) * 4);
+    }
+    .dash-pill { min-height: max(44px, calc(var(--u) * 2.8)); }
+    .dash-notice {
+        top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5 + max(44px, calc(var(--u) * 2.8)) + var(--u) * 0.6);
+        right: calc(max(var(--u), env(safe-area-inset-right)) + var(--u) * 0.5);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-pill, .dash-modal-button { transition: none; }
+}

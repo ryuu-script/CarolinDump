@@ -1,0 +1,93 @@
+.auth-page {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 1);
+    padding: calc(var(--u) * 2) calc(var(--u) * 1.25);
+    padding-top: max(calc(var(--u) * 2), env(safe-area-inset-top));
+    padding-bottom: max(calc(var(--u) * 2), env(safe-area-inset-bottom));
+    background:
+        radial-gradient(circle at 12% 8%,  color-mix(in srgb, var(--red) 14%, transparent),      transparent 42%),
+        radial-gradient(circle at 88% 88%, color-mix(in srgb, var(--lavender) 14%, transparent), transparent 42%);
+}
+
+.auth-title {
+    margin: 0;
+    font-size: calc(var(--u) * 2.4);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--red);
+    overflow-wrap: anywhere;
+}
+
+.auth-title-ok { color: var(--green); }
+
+.auth-text {
+    max-width: 32em;
+    font-size: calc(var(--u) * 1.1);
+    color: var(--muted);
+}
+
+/* Countdown ring */
+.auth-timer {
+    position: relative;
+    width: calc(var(--u) * 7);
+    height: calc(var(--u) * 7);
+    margin: calc(var(--u) * 0.5) 0;
+}
+
+.auth-timer-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.auth-timer-track,
+.auth-timer-progress {
+    fill: none;
+    stroke-width: 6;
+}
+
+.auth-timer-track { stroke: var(--surface-0); }
+
+.auth-timer-progress {
+    stroke: var(--red);
+    stroke-linecap: round;
+    transition: stroke-dashoffset 1s linear;
+}
+
+.auth-timer-number {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: calc(var(--u) * 3);
+    font-weight: 700;
+    color: var(--text-h);
+}
+
+.auth-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 calc(var(--u) * 1.4);
+    font-size: calc(var(--u) * 1.05);
+    font-weight: 500;
+    color: var(--lavender);
+    text-decoration: none;
+    border: 1px solid color-mix(in srgb, var(--lavender) 40%, var(--border));
+    border-radius: 999px;
+    transition: background 0.2s;
+}
+
+.auth-link:focus-visible { outline: 2px solid var(--lavender); outline-offset: 2px; }
+
+@media (hover: hover) {
+    .auth-link:hover { background: color-mix(in srgb, var(--lavender) 14%, var(--bg)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .auth-timer-progress, .auth-link { transition: none; }
+}

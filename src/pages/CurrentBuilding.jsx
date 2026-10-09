@@ -87,9 +87,6 @@ function CurrentBuilding() {
     return (
         <main className="building-page">
             <header className="building-header">
-                <button type="button" className="building-button building-back" onClick={goBack}>
-                    ← Map
-                </button>
                 <div className="building-heading">
                     <h1 className="building-title">{building.table.toUpperCase()}</h1>
                     <p className="building-subtitle">{building.name}</p>
@@ -97,9 +94,25 @@ function CurrentBuilding() {
             </header>
 
             <div className="building-toolbar">
-                <p className="building-count" aria-live="polite">
-                    {status === "ready" && `${rows.length} ${rows.length === 1 ? "bathroom" : "bathrooms"}`}
-                </p>
+                <div className="building-toolbar-start">
+                    <button type="button" className="building-button building-back" onClick={goBack} aria-label="Back to map">
+                        <svg
+                            className="building-back-icon"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.2"
+                            strokeLinecap="round"
+                            aria-hidden="true"
+                            focusable="false"
+                        >
+                            <path d="M6 6l12 12M18 6L6 18" />
+                        </svg>
+                    </button>
+                    <p className="building-count" aria-live="polite">
+                        {status === "ready" && `${rows.length} ${rows.length === 1 ? "bathroom" : "bathrooms"}`}
+                    </p>
+                </div>
                 <SortControls
                     sortKey={sortKey}
                     order={order}

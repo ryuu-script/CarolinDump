@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { startSignIn, signOut, useUser, ALLOWED_DOMAIN } from "../auth/auth.js";
 import Logo from "./Logo.jsx";
+import guestPfp from "../assets/pfp_guest.png";
 import "../stylesheets/dashelements.css";
 
 // What each role can use. `true` = enabled, `false` = shown but greyed out.
 // `sudo` is different: when it is false the button is not rendered at all.
+// `requiresLogin`: guests who press Submit Review are asked to sign in first. Admins skip that.
 const ROLE_ACCESS = {
-    student: { home: "/student", reviews: true, submit: true,  sudo: false },
-    admin:   { home: "/admin",   reviews: true, submit: false, sudo: true },
+    student: { home: "/student", reviews: true, submit: true, requiresLogin: true,  sudo: false },
+    admin:   { home: "/admin",   reviews: true, submit: true, requiresLogin: false, sudo: true },
 };
 
 // Replace these with real pages later.
@@ -47,7 +50,9 @@ const ICONS = {
     ),
     reviews: (
         <Icon>
-            <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" />
+            <path d="M6 3h12l4 6-10 13L2 9z" />
+            <path d="M11 3L8 9l4 13 4-13-3-6" />
+            <path d="M2 9h20" />
         </Icon>
     ),
     submit: (
@@ -62,6 +67,13 @@ const ICONS = {
             <path d="M11 6l-6 6 6 6" />
         </Icon>
     ),
+    signout: (
+        <Icon>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="M16 17l5-5-5-5" />
+            <path d="M21 12H9" />
+        </Icon>
+    ),
     sudo: (
         <Icon>
             <path d="M4 6l6 6-6 6" />
@@ -71,8 +83,9 @@ const ICONS = {
 };
 
 // A link when it is enabled, a greyed-out button when it is not.
+// With `onPress` it is a plain button instead (used to ask guests to sign in).
 // The link for the page you are on gets the filled "active" pill.
-function MenuItem({ to, icon, hue, disabled, hint, onNavigate, children }) {
+function MenuItem({ to, icon, hue, disabled, hint, onNavigate, onPress, children }) {
     const style = { "--hue": `var(--${hue})` };
     const content = (
         <>
@@ -80,9 +93,9 @@ function MenuItem({ to, icon, hue, disabled, hint, onNavigate, children }) {
             <span className="dash-label">{children}</span>
         </>
     );
-    if (disabled) {
+    if (disabled || onPress) {
         return (
-            <button type="button" className="dash-button" style={style} disabled title={hint}>
+            <button type="button" className="dash-button" style={style} disabled={disabled} title={hint} onClick={onPress}>
                 {content}
             </button>
         );
@@ -94,13 +107,159 @@ function MenuItem({ to, icon, hue, disabled, hint, onNavigate, children }) {
     );
 }
 
+// Guest picture, also used when a Google photo fails to load.
+function EmptyAvatar() {
+    return <img className="dash-avatar" src={guestPfp} alt="" aria-hidden="true" />;
+}
+
+function Avatar({ src }) {
+    const [broken, setBroken] = useState(false);
+    if (!src || broken) return <EmptyAvatar />;
+    return (
+        <img
+            className="dash-avatar"
+            src={src}
+            alt=""
+            referrerPolicy="no-referrer" // Google's photo host can refuse requests that carry a referrer
+            onError={() => setBroken(true)}
+        />
+    );
+}
+
+// Floating pill, top right. Guest -> click to sign in. Signed in -> click for Sign out.
+// Admins see "Admin" instead of an email, signed in or not.
+function AccountPill({ user, isAdmin, onSignIn }) {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const wrapRef = useRef(null);
+
+    // Close the sign-out menu on Escape or a click outside it. It also closes if the person signs out.
+    useEffect(() => {
+        if (!menuOpen) return;
+        const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
+        const onPointer = (e) => !wrapRef.current?.contains(e.target) && setMenuOpen(false);
+        window.addEventListener("keydown", onKey);
+        document.addEventListener("pointerdown", onPointer);
+        return () => {
+            window.removeEventListener("keydown", onKey);
+            document.removeEventListener("pointerdown", onPointer);
+        };
+    }, [menuOpen]);
+
+    const label = isAdmin ? "Admin" : user ? user.email : "Guest";
+    const hint = user ? "Account menu" : "Sign in with your USC Google account";
+
+    return (
+        <div className="dash-account" ref={wrapRef}>
+            <button
+                type="button"
+                className={`dash-pill${isAdmin ? " is-admin" : ""}${user ? " is-signed-in" : ""}`}
+                title={hint}
+                aria-haspopup={user ? "menu" : undefined}
+                aria-expanded={user ? menuOpen : undefined}
+                onClick={user ? () => setMenuOpen((o) => !o) : onSignIn}
+            >
+                <Avatar key={user?.picture ?? "none"} src={user?.picture} />
+                <span className="dash-pill-label">{label}</span>
+                <span className="dash-sr-only">{user ? "Signed in. Open account menu." : "Not signed in. Sign in with Google."}</span>
+            </button>
+
+            {user && menuOpen && (
+                <div className="dash-popover" role="menu">
+                    <button
+                        type="button"
+                        role="menuitem"
+                        className="dash-button"
+                        style={{ "--hue": "var(--red)" }}
+                        autoFocus
+                        onClick={() => { setMenuOpen(false); signOut(); }}
+                    >
+                        {ICONS.signout}
+                        <span className="dash-label">Sign out</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Shown when a guest presses Submit Review.
+function SignInPrompt({ onSignIn, onClose, error }) {
+    const primaryRef = useRef(null);
+
+    useEffect(() => {
+        const previous = document.activeElement;
+        primaryRef.current?.focus();
+        const onKey = (e) => e.key === "Escape" && onClose();
+        window.addEventListener("keydown", onKey);
+        return () => {
+            window.removeEventListener("keydown", onKey);
+            previous?.focus?.(); // put focus back on Submit Review
+        };
+    }, [onClose]);
+
+    return (
+        <div className="dash-modal-backdrop" onClick={onClose}>
+            <div
+                className="dash-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="dash-modal-title"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <h2 id="dash-modal-title" className="dash-modal-title">Sign in to submit a review</h2>
+                <p className="dash-modal-text">
+                    Reviews are for Carolinians. Sign in with your @{ALLOWED_DOMAIN} Google account to continue.
+                    Google opens in a new tab.
+                </p>
+                {error && <p className="dash-modal-error" role="alert">{error}</p>}
+                <div className="dash-modal-actions">
+                    <button type="button" ref={primaryRef} className="dash-modal-button is-primary" onClick={onSignIn}>
+                        Sign in with Google
+                    </button>
+                    <button type="button" className="dash-modal-button" onClick={onClose}>
+                        Not now
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const MISSING_CLIENT_ID = "Google sign-in isn't set up yet. Add VITE_GOOGLE_CLIENT_ID to your .env file.";
+
 // Left sidebar on wide screens, hamburger menu on phones. Sits on top of the map.
 function DashElements({ role = "student" }) {
     // An unknown role gets the most limited access.
     const access = ROLE_ACCESS[role] ?? ROLE_ACCESS.student;
+    const isAdmin = role === "admin" && access === ROLE_ACCESS.admin;
+
+    const user = useUser(); // null = guest
 
     const [open, setOpen] = useState(false); // only matters on phones
     const close = () => setOpen(false);
+
+    const [promptOpen, setPromptOpen] = useState(false); // "sign in first" dialog
+    const [authError, setAuthError] = useState("");
+
+    // Opens Google in a new tab. The dashboard updates by itself once that tab finishes.
+    const signIn = () => {
+        const { ok } = startSignIn(access.home);
+        setAuthError(ok ? "" : MISSING_CLIENT_ID);
+    };
+
+    // The login finished in the other tab: the dialog has done its job.
+    useEffect(() => {
+        if (user) setPromptOpen(false);
+    }, [user]);
+
+    // Stable, so the dialog's keyboard / focus effect does not re-run on every render.
+    const closePrompt = useCallback(() => {
+        setPromptOpen(false);
+        setAuthError("");
+    }, []);
+
+    // Guests (who are not admins) are asked to sign in before they can submit.
+    const guestMustSignIn = access.requiresLogin && !user;
 
     // Escape closes the menu.
     useEffect(() => {
@@ -145,8 +304,9 @@ function DashElements({ role = "student" }) {
                         icon={ICONS.submit}
                         hue="yellow"
                         disabled={!access.submit}
-                        hint="Only students can submit reviews"
+                        hint="Not available for your role"
                         onNavigate={close}
+                        onPress={guestMustSignIn ? () => { close(); setAuthError(""); setPromptOpen(true); } : undefined}
                     >
                         Submit Review
                     </MenuItem>
@@ -162,6 +322,11 @@ function DashElements({ role = "student" }) {
                     </div>
                 )}
             </aside>
+
+            <AccountPill user={user} isAdmin={isAdmin} onSignIn={signIn} />
+            {authError && !promptOpen && <p className="dash-notice" role="alert">{authError}</p>}
+
+            {promptOpen && <SignInPrompt onSignIn={signIn} onClose={closePrompt} error={authError} />}
         </>
     );
 }
