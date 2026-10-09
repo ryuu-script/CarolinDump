@@ -1,0 +1,174 @@
+.bathroom-card {
+    --hue: var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 0.6);
+    min-width: 0;
+    padding: calc(var(--u) * 0.6);
+    background: var(--bg);
+    border: 1px solid color-mix(in srgb, var(--hue) 28%, var(--border));
+    border-radius: calc(var(--u) * 1.1);
+    box-shadow: var(--shadow);
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Fade in and slide up on load, one card after another (first 10 are staggered, the rest arrive with the 10th).
+   `backwards` only holds the hidden start state during the delay, so the hover lift still works afterwards. */
+.bathroom-card {
+    animation: bathroom-card-in 0.5s ease-out backwards;
+    animation-delay: calc(min(var(--i, 0), 10) * 60ms);
+}
+
+@keyframes bathroom-card-in {
+    from { opacity: 0; transform: translateY(calc(var(--u) * 1.5)); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bathroom-card { animation: none; }
+}
+
+/* Mix and match: cards cycle through all six accents */
+.bathroom-card:nth-child(6n+1) { --hue: var(--red); }
+.bathroom-card:nth-child(6n+2) { --hue: var(--peach); }
+.bathroom-card:nth-child(6n+3) { --hue: var(--yellow); }
+.bathroom-card:nth-child(6n+4) { --hue: var(--green); }
+.bathroom-card:nth-child(6n+5) { --hue: var(--blue); }
+.bathroom-card:nth-child(6n)   { --hue: var(--lavender); }
+
+@media (hover: hover) {
+    .bathroom-card:hover {
+        transform: translateY(calc(var(--u) * -0.2));
+        border-color: var(--hue);
+        box-shadow: var(--shadow), 0 0 0 1px var(--hue);
+    }
+}
+
+/* ---------- Photo ---------- */
+.bathroom-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--text) 12%, var(--bg));
+    border-radius: calc(var(--u) * 0.7);
+}
+
+.bathroom-photo-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bathroom-photo-empty {
+    font-size: calc(var(--u) * 0.85);
+    color: var(--muted);
+}
+
+/* ---------- Thumbnails (only when there is more than one photo) ---------- */
+.bathroom-thumbs {
+    display: flex;
+    gap: calc(var(--u) * 0.4);
+}
+
+.bathroom-thumb {
+    flex: 1 1 0;
+    min-width: 0;
+    aspect-ratio: 4 / 3;
+    max-height: calc(var(--u) * 3.2);
+    padding: 0;
+    overflow: hidden;
+    background: none;
+    border: 2px solid var(--border);
+    border-radius: calc(var(--u) * 0.4);
+    opacity: 0.7;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 0.2s, border-color 0.2s;
+}
+
+.bathroom-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.bathroom-thumb.is-active {
+    opacity: 1;
+    border-color: var(--hue);
+}
+
+.bathroom-thumb:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 2px;
+}
+
+/* ---------- Text ---------- */
+.bathroom-info {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 0.15);
+    padding: 0 calc(var(--u) * 0.2) calc(var(--u) * 0.2);
+}
+
+.bathroom-room {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.4);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text-h);
+    overflow-wrap: anywhere;
+}
+
+.bathroom-unit {
+    font-size: calc(var(--u) * 0.95);
+    color: var(--muted);
+    overflow-wrap: anywhere;
+}
+
+.bathroom-rating {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(var(--u) * 0.4);
+    margin-top: calc(var(--u) * 0.3);
+}
+
+.bathroom-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 0.15);
+    white-space: nowrap;
+}
+
+.bathroom-ruby {
+    width: calc(var(--u) * 1.1);
+    height: calc(var(--u) * 1.1);
+    flex: none;
+}
+
+.bathroom-ruby .ruby-body { fill: #f38ba8; }
+.bathroom-ruby .ruby-light { fill: #fff; opacity: 0.35; }
+.bathroom-ruby .ruby-light-soft { fill: #fff; opacity: 0.18; }
+.bathroom-ruby .ruby-shade { fill: #000; opacity: 0.12; }
+
+.bathroom-ruby.is-off .ruby-body { fill: var(--surface-1); }
+.bathroom-ruby.is-off .ruby-light,
+.bathroom-ruby.is-off .ruby-light-soft,
+.bathroom-ruby.is-off .ruby-shade { opacity: 0; }
+
+.bathroom-rating-num {
+    font-size: calc(var(--u) * 0.85);
+    font-weight: 500;
+    color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bathroom-card, .bathroom-thumb { transition: none; transform: none !important; }
+}

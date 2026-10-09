@@ -1,13 +1,13 @@
 /* The map fills the whole screen: no frame, no box. */
 .campus-map {
-    --map-bg: #131313;
-    --map-line: #cfcfcf;
-    --map-text: #dcdcdc;
-    --map-hover: #6ea8fe;          /* hover colour: set to var(--accent) if you prefer */
-    --map-building-fill: #1b1b1b;
+    --map-bg: var(--mantle);
+    --map-line: var(--surface-2);
+    --map-text: var(--text);
+    --map-hover: var(--lavender);  /* each building overrides this with its own accent below */
+    --map-building-fill: var(--surface-0);
 
-    --road-edge: #3d3d3d;
-    --road-surface: #232323;
+    --road-edge: var(--surface-0);
+    --road-surface: var(--base);
 
     position: fixed;
     inset: 0;
@@ -46,35 +46,43 @@
 /* ---------- Buildings ---------- */
 .campus-block {
     cursor: pointer;
+    --hue: var(--map-hover);
     -webkit-tap-highlight-color: transparent;
     outline: none;
 }
 
 .campus-shape {
-    fill: var(--map-building-fill);
+    fill: color-mix(in srgb, var(--map-hover) 8%, var(--map-building-fill));
     pointer-events: all;
-    stroke: var(--map-line);
+    stroke: color-mix(in srgb, var(--map-hover) 55%, var(--map-line));
     stroke-width: 1.5;
     vector-effect: non-scaling-stroke; /* line stays the same thickness when zooming */
     transition: stroke 0.2s, fill 0.2s;
 }
 
 .campus-text {
-    fill: var(--map-text);
+    fill: var(--map-hover); /* same accent as the building's outline */
     font-family: var(--sans);
     font-size: 20px;
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: 0.03em;
     pointer-events: none;
     transition: fill 0.2s;
 }
+
+/* Mix and match: buildings cycle through all six accents */
+.campus-block:nth-of-type(6n+1) { --map-hover: var(--red); }
+.campus-block:nth-of-type(6n+2) { --map-hover: var(--peach); }
+.campus-block:nth-of-type(6n+3) { --map-hover: var(--yellow); }
+.campus-block:nth-of-type(6n+4) { --map-hover: var(--green); }
+.campus-block:nth-of-type(6n+5) { --map-hover: var(--blue); }
+.campus-block:nth-of-type(6n)   { --map-hover: var(--lavender); }
 
 /* Keyboard focus */
 .campus-block:focus-visible .campus-shape {
     stroke: var(--map-hover);
     fill: color-mix(in srgb, var(--map-hover) 18%, var(--map-building-fill));
 }
-.campus-block:focus-visible .campus-text { fill: var(--map-hover); }
 
 /* Mouse hover (not on touch screens) */
 @media (hover: hover) {
@@ -82,7 +90,6 @@
         stroke: var(--map-hover);
         fill: color-mix(in srgb, var(--map-hover) 18%, var(--map-building-fill));
     }
-    .campus-block:hover .campus-text { fill: var(--map-hover); }
 }
 
 /* ---------- Zoom buttons ---------- */
@@ -96,15 +103,16 @@
 }
 
 .campus-controls button {
+    --hue: var(--accent);
     min-width: calc(var(--u) * 2.4);
     height: calc(var(--u) * 2.4);
     padding: 0 calc(var(--u) * 0.6);
     font-family: var(--sans);
     font-size: calc(var(--u) * 1);
     font-weight: 500;
-    color: var(--btn-text);
+    color: var(--hue);
     background: var(--btn-bg);
-    border: 1px solid var(--border);
+    border: 1px solid color-mix(in srgb, var(--hue) 40%, var(--border));
     border-radius: calc(var(--u) * 0.5);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -113,22 +121,26 @@
 
 @media (hover: hover) {
     .campus-controls button:hover {
-        background: var(--accent);
-        border-color: var(--accent);
+        background: var(--hue);
+        border-color: var(--hue);
         color: var(--on-accent);
     }
 }
 
 .campus-controls button:active {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--hue);
+    border-color: var(--hue);
     color: var(--on-accent);
 }
 
 .campus-controls button:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--hue);
     outline-offset: 2px;
 }
+
+.campus-controls button:nth-child(1) { --hue: var(--green); }
+.campus-controls button:nth-child(2) { --hue: var(--peach); }
+.campus-controls button:nth-child(3) { --hue: var(--blue); }
 
 /* Touch screens: 44px tap targets, and room for the home indicator */
 @media (pointer: coarse) {

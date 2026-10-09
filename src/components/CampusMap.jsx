@@ -6,12 +6,11 @@ import "../stylesheets/campusmap.css";
 //
 //   cx, cy     centre of the box
 //   w, h       size of the box
-//   rot        rotation in degrees around the centre (0 = straight)
-//   lx, ly     where the label sits (defaults to the centre of the box)
-//   anchor     label alignment: "middle" (default), "start" or "end"
+//   rot        rotation in degrees around the centre (0 = straight).
+//              The label is centred inside the box and rotated by the same amount.
 //   text       the label
 //   name       full name, used for the hover tooltip and screen readers
-//   path       where clicking goes (placeholder for now, replace later)
+//   path       where clicking goes: /building/:id opens the CurrentBuilding page
 const CONTENT_W = 1084;
 const CONTENT_H = 711;
 const PAD = 40; // empty space around the map when fully zoomed out
@@ -31,18 +30,18 @@ function homeView(width, height) {
 }
 
 const BUILDINGS = [
-    { id: "lb",     text: "LB",     name: "Fr. Lawrence Bunzel Building",   cx: 102, cy: 110, w: 75,  h: 99,  rot: 0,   ly: 182 },
-    { id: "af",     text: "AF",     name: "Safad Building",                 cx: 438, cy: 94,  w: 202, h: 69,  rot: 0,   lx: 438, ly: 38 },
-    { id: "mr",     text: "MR",     name: "Michael Richartz Center",        cx: 663, cy: 130, w: 99,  h: 99,  rot: 20,  lx: 704, ly: 63 },
-    { id: "church", text: "Church", name: "St. Arnold Janssen and St. Joseph Freinademetz Church", cx: 348, cy: 268, w: 98, h: 98, rot: -25, lx: 263, ly: 311 },
-    { id: "jb",     text: "JB",     name: "Joseph Baumgartner Learning Resource Center", cx: 891, cy: 293, w: 96, h: 151, rot: -15, lx: 817, ly: 352 },
-    { id: "es",     text: "ES",     name: "Enrique Shoenig",                cx: 250, cy: 482, w: 85,  h: 46,  rot: 0,   ly: 526 },
-    { id: "fo",     text: "FO",     name: "Franz Oster",                    cx: 342, cy: 482, w: 85,  h: 46,  rot: 0,   ly: 526 },
-    { id: "eo",     text: "EO",     name: "Edgar Oehler",                   cx: 433, cy: 482, w: 85,  h: 46,  rot: 0,   ly: 526 },
-    { id: "sm",     text: "SM",     name: "SMED Building",                  cx: 525, cy: 482, w: 85,  h: 46,  rot: 0,   ly: 526 },
-    { id: "pe",     text: "PE",     name: "Philip Van Engelen Building",    cx: 668, cy: 550, w: 70,  h: 153, rot: 0,   lx: 664, ly: 452 },
-    { id: "rh",     text: "RH",     name: "Robert Hoeppener Building",      cx: 856, cy: 634, w: 148, h: 68,  rot: -10, lx: 958, ly: 614 },
-].map((b) => ({ ...b, path: "/placeholder" }));
+    { id: "lb",     text: "LB",     name: "Fr. Lawrence Bunzel Building",   cx: 102, cy: 110, w: 75,  h: 99,  rot: 0 },
+    { id: "af",     text: "AF",     name: "Safad Building",                 cx: 438, cy: 94,  w: 202, h: 69,  rot: 0 },
+    { id: "mr",     text: "MR",     name: "Michael Richartz Center",        cx: 663, cy: 130, w: 99,  h: 99,  rot: 20 },
+    { id: "church", text: "Church", name: "St. Arnold Janssen and St. Joseph Freinademetz Church", cx: 348, cy: 268, w: 98, h: 98, rot: -25 },
+    { id: "jb",     text: "JB",     name: "Joseph Baumgartner Learning Resource Center", cx: 891, cy: 293, w: 96, h: 151, rot: -15 },
+    { id: "es",     text: "ES",     name: "Enrique Shoenig",                cx: 250, cy: 482, w: 85,  h: 46,  rot: 0 },
+    { id: "fo",     text: "FO",     name: "Franz Oster",                    cx: 342, cy: 482, w: 85,  h: 46,  rot: 0 },
+    { id: "eo",     text: "EO",     name: "Edgar Oehler",                   cx: 433, cy: 482, w: 85,  h: 46,  rot: 0 },
+    { id: "sm",     text: "SM",     name: "SMED Building",                  cx: 525, cy: 482, w: 85,  h: 46,  rot: 0 },
+    { id: "pe",     text: "PE",     name: "Philip Van Engelen Building",    cx: 668, cy: 550, w: 70,  h: 153, rot: 0 },
+    { id: "rh",     text: "RH",     name: "Robert Hoeppener Building",      cx: 856, cy: 634, w: 148, h: 68,  rot: -10 },
+].map((b) => ({ ...b, path: `/building/${b.id}` }));
 
 // The roads. Each one is a list of points joined by straight lines.
 const ROADS = [
@@ -96,6 +95,14 @@ function clampView(v, rect) {
         x: clamp(v.x, left + keepX - (PAD + CONTENT_W) * v.k, right - keepX - PAD * v.k),
         y: clamp(v.y, top + keepY - (PAD + CONTENT_H) * v.k, bottom - keepY - PAD * v.k),
     };
+}
+
+// Biggest label size (map units) that still fits inside a box: caps `size` by the box's width and height.
+// Bold caps are roughly 0.7em wide per character and 0.9em tall including breathing room.
+function fitLabel(size, text, w, h) {
+    const byWidth = (w - 12) / (text.length * 0.7);
+    const byHeight = (h - 10) / 0.9;
+    return Math.max(6, Math.min(size, byWidth, byHeight));
 }
 
 function Box({ className, cx, cy, w, h, rot = 0 }) {
@@ -279,11 +286,12 @@ function CampusMap({ buildings = BUILDINGS }) {
                             <Box className="campus-shape" {...b} />
                             <text
                                 className="campus-text"
-                                style={{ fontSize: labelSize }}
-                                x={b.lx ?? b.cx}
-                                y={b.ly ?? b.cy}
-                                textAnchor={b.anchor ?? "middle"}
-                                dominantBaseline="central"
+                                style={{ fontSize: fitLabel(labelSize, b.text, b.w, b.h) }}
+                                x={b.cx}
+                                y={b.cy}
+                                dy="0.35em"
+                                textAnchor="middle"
+                                transform={b.rot ? `rotate(${b.rot} ${b.cx} ${b.cy})` : undefined}
                             >
                                 {b.text}
                             </text>

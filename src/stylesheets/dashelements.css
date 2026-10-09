@@ -30,6 +30,10 @@
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: var(--text-h);
+    background: linear-gradient(90deg, #fab387, #cba6f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     overflow-wrap: anywhere;
 }
 
@@ -48,48 +52,59 @@
     border-top: 1px solid var(--border);
 }
 
-/* ---------- Buttons (same look as the role buttons) ---------- */
+/* ---------- Menu items: flat coloured rows, with a tinted pill for the page you are on ---------- */
 .dash-button {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    gap: calc(var(--u) * 0.9);
     width: 100%;
-    min-height: calc(var(--u) * 3);
-    padding: 0 var(--u);
+    min-height: calc(var(--u) * 3.2);
+    padding: 0 calc(var(--u) * 1.2);
     font-family: var(--sans);
     font-size: calc(var(--u) * 1.1);
     font-weight: 500;
     text-decoration: none;
-    color: var(--btn-text);
-    background: var(--btn-bg);
-    border: 1px solid var(--border);
-    border-radius: calc(var(--u) * 0.8);
+    --hue: var(--accent); /* each item sets its own colour (see DashElements.jsx) */
+    color: var(--hue);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
+    transition: background 0.2s, color 0.2s;
+}
+
+.dash-icon {
+    flex: none;
+    width: 1.4em;
+    height: 1.4em;
+}
+
+.dash-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Active page: pill tinted with the item's own colour */
+.dash-button.active {
+    background: color-mix(in srgb, var(--hue) 24%, var(--bg));
 }
 
 /* Hover effects only on devices that actually hover (not touch) */
 @media (hover: hover) {
-    .dash-button:not(:disabled):hover {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: var(--on-accent);
-        box-shadow: var(--shadow);
-        transform: scale(1.04);
+    .dash-button:not(:disabled):not(.active):hover {
+        background: color-mix(in srgb, var(--hue) 14%, var(--bg));
     }
 }
 
 .dash-button:not(:disabled):active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--on-accent);
-    transform: scale(0.97);
+    background: color-mix(in srgb, var(--hue) 24%, var(--bg));
 }
 
 .dash-button:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 3px;
+    outline: 2px solid var(--hue);
+    outline-offset: 2px;
 }
 
 .dash-button:disabled {
@@ -105,6 +120,7 @@
 
 @media (max-width: 768px) {
     .dash-toggle {
+        --hue: var(--lavender);
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -117,9 +133,9 @@
         width: max(44px, calc(var(--u) * 2.8));
         height: max(44px, calc(var(--u) * 2.8));
         padding: 0;
-        color: var(--btn-text);
+        color: var(--hue);
         background: var(--btn-bg);
-        border: 1px solid var(--border);
+        border: 1px solid color-mix(in srgb, var(--hue) 40%, var(--border));
         border-radius: calc(var(--u) * 0.5);
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
@@ -139,13 +155,13 @@
     .dash-toggle[aria-expanded="true"] .dash-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
     .dash-toggle:active {
-        background: var(--accent);
-        border-color: var(--accent);
+        background: var(--hue);
+        border-color: var(--hue);
         color: var(--on-accent);
     }
 
     .dash-toggle:focus-visible {
-        outline: 2px solid var(--accent);
+        outline: 2px solid var(--hue);
         outline-offset: 2px;
     }
 
@@ -172,7 +188,7 @@
         position: fixed;
         inset: 0;
         z-index: 25;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(17, 17, 27, 0.7);
         opacity: 0;
         visibility: hidden;
         transition: opacity 0.25s, visibility 0s linear 0.25s;
@@ -188,5 +204,4 @@
 @media (prefers-reduced-motion: reduce) {
     .dash-button, .dash-toggle, .dash-toggle-bar,
     .dash-sidebar, .dash-backdrop { transition: none; }
-    .dash-button { transform: none !important; }
 }

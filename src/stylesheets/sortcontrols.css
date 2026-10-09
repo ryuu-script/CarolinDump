@@ -1,0 +1,127 @@
+.sort-controls {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 0.5);
+}
+
+.sort-dropdown {
+    position: relative;
+}
+
+/* Same look as the dashboard buttons */
+.sort-button {
+    --hue: var(--blue);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(var(--u) * 0.5);
+    min-height: calc(var(--u) * 2.4);
+    padding: 0 calc(var(--u) * 0.9);
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1);
+    font-weight: 500;
+    color: var(--hue);
+    background: var(--btn-bg);
+    border: 1px solid color-mix(in srgb, var(--hue) 40%, var(--border));
+    border-radius: calc(var(--u) * 0.8);
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.sort-order {
+    --hue: var(--peach);
+    min-width: calc(var(--u) * 5.5);
+}
+
+@media (hover: hover) {
+    .sort-button:hover {
+        background: var(--hue);
+        border-color: var(--hue);
+        color: var(--on-accent);
+        box-shadow: var(--shadow);
+    }
+}
+
+.sort-button:active,
+.sort-button[aria-expanded="true"] {
+    background: var(--hue);
+    border-color: var(--hue);
+    color: var(--on-accent);
+}
+
+.sort-button:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 3px;
+}
+
+.sort-caret {
+    transition: transform 0.2s;
+}
+
+.sort-caret.is-open {
+    transform: rotate(180deg);
+}
+
+/* ---------- Dropdown menu ---------- */
+.sort-menu {
+    position: absolute;
+    top: calc(100% + var(--u) * 0.4);
+    left: 0;
+    z-index: 10;
+    min-width: 100%;
+    margin: 0;
+    padding: calc(var(--u) * 0.4);
+    list-style: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 0.8);
+    box-shadow: var(--shadow);
+}
+
+.sort-option {
+    --hue: var(--accent);
+    display: block;
+    width: 100%;
+    padding: calc(var(--u) * 0.5) calc(var(--u) * 0.8);
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1);
+    text-align: left;
+    color: var(--text-h);
+    background: none;
+    border: 0;
+    border-radius: calc(var(--u) * 0.5);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sort-menu li:nth-child(1) .sort-option { --hue: var(--blue); }
+.sort-menu li:nth-child(2) .sort-option { --hue: var(--green); }
+.sort-menu li:nth-child(3) .sort-option { --hue: var(--yellow); }
+
+.sort-option.is-selected {
+    font-weight: 700;
+    color: var(--hue);
+}
+
+@media (hover: hover) {
+    .sort-option:hover {
+        background: var(--hue);
+        color: var(--on-accent);
+    }
+}
+
+.sort-option:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: -2px;
+}
+
+@media (pointer: coarse) {
+    .sort-button { min-height: 44px; }
+    .sort-option { min-height: 44px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sort-button, .sort-caret { transition: none; }
+}

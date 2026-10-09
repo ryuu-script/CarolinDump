@@ -10,4 +10,11 @@
     /* keep clear of notches / home bar on phones */
     padding-top: max(calc(var(--u) * 2), env(safe-area-inset-top));
     padding-bottom: max(calc(var(--u) * 2), env(safe-area-inset-bottom));
+
+    /* soft pools of accent colour behind the content */
+    background:
+        radial-gradient(circle at 12% 8%,  color-mix(in srgb, var(--red) 14%, transparent),      transparent 42%),
+        radial-gradient(circle at 88% 14%, color-mix(in srgb, var(--blue) 14%, transparent),     transparent 42%),
+        radial-gradient(circle at 18% 92%, color-mix(in srgb, var(--green) 11%, transparent),    transparent 42%),
+        radial-gradient(circle at 86% 88%, color-mix(in srgb, var(--lavender) 14%, transparent), transparent 42%);
 }

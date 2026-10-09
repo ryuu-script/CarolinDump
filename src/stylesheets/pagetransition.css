@@ -1,0 +1,25 @@
+/* Fills the page like the old #root children did, so pages lay out exactly as before. */
+.page-transition {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+/* 750ms out + 750ms in = 1.5s per page change (see PageTransition.jsx) */
+.page-in  { animation: page-fade-in  750ms ease-in-out both; }
+.page-out { animation: page-fade-out 750ms ease-in-out forwards; pointer-events: none; }
+
+@keyframes page-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes page-fade-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-in, .page-out { animation: none; }
+}

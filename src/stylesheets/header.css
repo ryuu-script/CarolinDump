@@ -9,7 +9,7 @@
 .header-welcome {
     font-size: calc(var(--u) * 1.2);
     font-weight: 400;
-    color: var(--text);
+    color: var(--muted);
 }
 
 .header-name {
@@ -18,5 +18,9 @@
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: var(--text-h);
+    background: linear-gradient(90deg, #fab387, #cba6f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
     overflow-wrap: anywhere; /* long names never overflow a phone */
 }

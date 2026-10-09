@@ -23,26 +23,39 @@
     color: var(--text-h);
 }
 
-.loading-bar {
-    width: 100%;
-    height: calc(var(--u) * 0.9);
-    overflow: hidden;
-    border: 2px solid var(--text-h);
+/* 5 empty dots fade in, then fill with colour one by one */
+.loading-dots {
+    --fade: 300ms; /* fade-in time; the dots start filling after it */
+    display: flex;
+    justify-content: center;
+    gap: calc(var(--u) * 0.9);
+    padding: calc(var(--u) * 0.4) 0;
+    animation: loading-fade var(--fade) ease-out both;
+}
+
+.loading-dot {
+    width: calc(var(--u) * 1.3);
+    height: calc(var(--u) * 1.3);
+    border: 2px solid var(--surface-2);
+    border-radius: 50%;
     background: transparent;
+    /* total fill time = 85% of the loading duration, split evenly between the dots */
+    animation: loading-dot-fill 220ms ease-out forwards;
+    animation-delay: calc(var(--fade) + var(--i) * var(--duration, 2000ms) * 0.85 / 5);
 }
 
-.loading-fill {
-    height: 100%;
-    width: 0;
-    background: var(--text-h);
-    animation: loading-fill var(--duration, 2000ms) cubic-bezier(0.3, 0.6, 0.4, 1) forwards;
+@keyframes loading-fade {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }
 
-@keyframes loading-fill {
-    from { width: 0; }
-    to   { width: 100%; }
+@keyframes loading-dot-fill {
+    from { background: transparent; border-color: var(--surface-2); transform: scale(1); }
+    50%  { transform: scale(1.25); }
+    to   { background: var(--c); border-color: var(--c); transform: scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .loading-fill { animation: none; width: 100%; }
+    .loading-dots { animation: none; }
+    .loading-dot { animation: none; background: var(--c); border-color: var(--c); }
 }

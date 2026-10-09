@@ -9,7 +9,7 @@
 
 .role-title {
     font-size: calc(var(--u) * 1.2);
-    color: var(--text);
+    color: var(--muted);
 }
 
 /* Side by side by default */
@@ -22,6 +22,7 @@
 }
 
 .role-button {
+    --hue: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -32,20 +33,23 @@
     font-size: calc(var(--u) * 1.1);
     font-weight: 500;
     text-decoration: none;
-    color: var(--btn-text);
+    color: var(--hue);
     background: var(--btn-bg);
-    border: 1px solid var(--border);
+    border: 1px solid color-mix(in srgb, var(--hue) 40%, var(--border));
     border-radius: calc(var(--u) * 1.1);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
 }
 
+.role-button:nth-child(1) { --hue: var(--blue); }
+.role-button:nth-child(2) { --hue: var(--peach); }
+
 /* Hover effects only on devices that actually hover (not touch) */
 @media (hover: hover) {
     .role-button:hover {
-        background: var(--accent);
-        border-color: var(--accent);
+        background: var(--hue);
+        border-color: var(--hue);
         color: var(--on-accent);
         box-shadow: var(--shadow);
         transform: scale(1.06);
@@ -53,14 +57,14 @@
 }
 
 .role-button:active {
-    background: var(--accent);
-    border-color: var(--accent);
+    background: var(--hue);
+    border-color: var(--hue);
     color: var(--on-accent);
     transform: scale(0.97);
 }
 
 .role-button:focus-visible {
-    outline: 2px solid var(--accent);
+    outline: 2px solid var(--hue);
     outline-offset: 3px;
 }
 
