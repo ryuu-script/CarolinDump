@@ -13,7 +13,7 @@ import { getBuilding } from "../data/buildings.js";
 // Never build SQL from the table name on the server without checking it
 // against the whitelist in data/buildings.js, since it comes from the URL.
 // ---------------------------------------------------------------------------
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
 // Turns whatever the database returns into the shape the page expects.
