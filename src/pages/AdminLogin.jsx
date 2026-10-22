@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import Logo from "../components/Logo.jsx";
 import { adminLogin, getAdmin } from "../auth/admin_auth.js";
 import "../stylesheets/adminlogin.css";
 
@@ -11,7 +10,10 @@ function AdminLogin() {
     const [error, setError] = useState("");
     const [busy, setBusy] = useState(false);
 
-    if (getAdmin()) return <Navigate to="/admin" replace />;
+    // After logging in, show the loading screen, which then continues to /admin.
+    const afterLogin = `/loading?to=${encodeURIComponent("/admin")}`;
+
+    if (getAdmin()) return <Navigate to={afterLogin} replace />;
 
     async function onSubmit(e) {
         e.preventDefault();
@@ -20,7 +22,7 @@ function AdminLogin() {
         setError("");
         const result = await adminLogin(email, password);
         if (result.ok) {
-            navigate("/admin", { replace: true });
+            navigate(afterLogin, { replace: true });
         } else {
             setError(result.error);
             setPassword("");
@@ -30,14 +32,14 @@ function AdminLogin() {
 
     return (
         <main className="admin-login">
-            <Logo />
             <form className="admin-form" onSubmit={onSubmit} noValidate>
                 <h1 className="admin-title">Admin login</h1>
 
                 <label className="admin-field">
-                    <span>Email</span>
                     <input
                         type="email"
+                        placeholder="Email"
+                        aria-label="Email"
                         name="email"
                         autoComplete="username"
                         value={email}
@@ -48,9 +50,10 @@ function AdminLogin() {
                 </label>
 
                 <label className="admin-field">
-                    <span>Password</span>
                     <input
                         type="password"
+                        placeholder="Password"
+                        aria-label="Password"
                         name="password"
                         autoComplete="current-password"
                         value={password}
@@ -61,10 +64,16 @@ function AdminLogin() {
 
                 <p className="admin-error" role="alert" aria-live="polite">{error}</p>
 
-                <button className="admin-submit" type="submit" disabled={busy || !email || !password}>
-                    {busy ? "Checking…" : "Log in"}
-                </button>
-                <Link className="admin-back" to="/">Back</Link>
+                <div className="admin-actions">
+                    <Link className="admin-back" to="/">Back</Link>
+                    <button className="admin-submit" type="submit" disabled={busy || !email || !password}>
+                        {busy ? (
+                            <span className="admin-dots" role="status" aria-label="Checking">
+                                <span /><span /><span />
+                            </span>
+                        ) : "Log in"}
+                    </button>
+                </div>
             </form>
         </main>
     );

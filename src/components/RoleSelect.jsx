@@ -10,7 +10,7 @@ function RoleSelect({ studentPath = "/student", adminPath = "/admin" }) {
             <p id="role-title" className="role-title">What are you?</p>
             <div className="role-options">
                 <Link className="role-button" to={viaLoading(studentPath)}>Student</Link>
-                <Link className="role-button" to={viaLoading(adminPath)}>Admin</Link>
+                <Link className="role-button" to={adminPath}>Admin</Link>
             </div>
         </nav>
     );

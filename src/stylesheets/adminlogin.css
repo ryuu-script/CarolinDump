@@ -14,11 +14,10 @@
 .admin-form {
     display: flex;
     flex-direction: column;
-    gap: calc(var(--u) * 0.9);
-    width: min(100%, calc(var(--u) * 24));
-    padding: calc(var(--u) * 1.6);
+    gap: calc(var(--u) * 1.4);
+    width: min(100%, calc(var(--u) * 26));
+    padding: calc(var(--u) * 2.4) calc(var(--u) * 2);
     background: var(--mantle);
-    border: 1px solid var(--border);
     border-radius: calc(var(--u) * 1.1);
     box-shadow: var(--shadow);
 }
@@ -28,6 +27,8 @@
     font-size: calc(var(--u) * 1.8);
     color: var(--peach);
     text-align: center;
+    text-transform: uppercase;
+    margin-bottom: calc(var(--u) * 0.4);
 }
 
 .admin-field {
@@ -39,14 +40,20 @@
 }
 
 .admin-field input {
-    min-height: 44px;
-    padding: 0 calc(var(--u) * 0.9);
+    min-height: 50px;
+    padding: 0 calc(var(--u) * 1.4);
     font: inherit;
     font-size: max(16px, calc(var(--u) * 1.05)); /* 16px+ stops iOS zooming on focus */
     color: var(--text);
-    background: var(--base);
-    border: 1px solid var(--surface-1);
-    border-radius: calc(var(--u) * 0.6);
+    background: var(--btn-bg);
+    border: 0;
+    border-radius: 999px; /* pill */
+    box-shadow: var(--shadow);
+}
+
+.admin-field input::placeholder {
+    color: var(--muted);
+    opacity: 1;
 }
 
 .admin-field input:focus-visible {
@@ -56,36 +63,88 @@
 
 .admin-error {
     min-height: 1.4em;
-    margin: 0;
+    margin: calc(var(--u) * -0.6) 0;
+    text-align: center;
     font-size: calc(var(--u) * 0.95);
     color: var(--red);
 }
 
-.admin-submit {
-    min-height: 44px;
-    font: inherit;
-    font-weight: 600;
-    color: var(--on-accent);
-    background: var(--peach);
-    border: 0;
-    border-radius: calc(var(--u) * 0.6);
-    cursor: pointer;
-    transition: transform 0.2s, opacity 0.2s;
+.admin-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: calc(var(--u) * 1);
+    margin-top: calc(var(--u) * 0.4);
 }
 
-.admin-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-.admin-submit:not(:disabled):active { transform: scale(0.98); }
-.admin-submit:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
-
+.admin-submit,
 .admin-back {
-    align-self: center;
+    --hue: var(--peach);
+    flex: 0 1 calc(var(--u) * 8);
+    min-width: 0;
     min-height: 44px;
     display: inline-flex;
     align-items: center;
-    color: var(--lavender);
+    justify-content: center;
+    font: inherit;
+    font-weight: 600;
     text-decoration: none;
+    text-transform: uppercase;
+    color: var(--hue);
+    background: var(--btn-bg);
+    border: 3px solid transparent; /* reserved so the hover border does not shift the layout */
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s, border-color 0.2s, opacity 0.2s;
+}
+
+.admin-back { --hue: var(--lavender); }
+
+.admin-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-submit:not(:disabled):active,
+.admin-back:active {
+    border-color: var(--hue);
+    transform: scale(0.97);
+}
+.admin-submit:focus-visible,
+.admin-back:focus-visible { outline: 2px solid var(--hue); outline-offset: 3px; }
+
+/* Hover effects only on devices that actually hover (not touch) */
+@media (hover: hover) {
+    .admin-submit:not(:disabled):hover,
+    .admin-back:hover {
+        border-color: var(--hue);
+        transform: scale(1.06);
+    }
+}
+
+/* Three dots doing a wave while the login request is running */
+.admin-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--u) * 0.35);
+}
+
+.admin-dots span {
+    width: calc(var(--u) * 0.5);
+    height: calc(var(--u) * 0.5);
+    background: currentColor;
+    border-radius: 50%;
+    animation: admin-wave 1.1s ease-in-out infinite;
+}
+
+.admin-dots span:nth-child(2) { animation-delay: 0.15s; }
+.admin-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes admin-wave {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+    30%           { transform: translateY(calc(var(--u) * -0.45)); opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .admin-submit { transition: none; }
+    .admin-submit,
+    .admin-back { transition: none; transform: none !important; }
+    .admin-dots span { animation-duration: 2.2s; transform: none !important; }
 }

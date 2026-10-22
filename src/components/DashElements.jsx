@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { startSignIn, signOut, useUser, ALLOWED_DOMAIN } from "../auth/auth.js";
+import { signOutAdmin } from "../auth/admin_auth.js";
 import Logo from "./Logo.jsx";
 import guestPfp from "../assets/pfp_guest.png";
 import "../stylesheets/dashelements.css";
@@ -127,8 +128,9 @@ function Avatar({ src }) {
 }
 
 // Floating pill, top right. Guest -> click to sign in. Signed in -> click for Sign out.
-// Admins see "Admin" instead of an email, signed in or not.
-function AccountPill({ user, isAdmin, onSignIn }) {
+// Admins are already signed in (via the admin login), so they never get the Google
+// prompt: the pill always opens a menu with Sign out, and they see "Admin" instead of an email.
+function AccountPill({ user, isAdmin, onSignIn, onSignOut }) {
     const [menuOpen, setMenuOpen] = useState(false);
     const wrapRef = useRef(null);
 
@@ -145,25 +147,26 @@ function AccountPill({ user, isAdmin, onSignIn }) {
         };
     }, [menuOpen]);
 
+    const signedIn = isAdmin || Boolean(user);
     const label = isAdmin ? "Admin" : user ? user.email : "Guest";
-    const hint = user ? "Account menu" : "Sign in with your USC Google account";
+    const hint = signedIn ? "Account menu" : "Sign in with your USC Google account";
 
     return (
         <div className="dash-account" ref={wrapRef}>
             <button
                 type="button"
-                className={`dash-pill${isAdmin ? " is-admin" : ""}${user ? " is-signed-in" : ""}`}
+                className={`dash-pill${isAdmin ? " is-admin" : ""}${signedIn ? " is-signed-in" : ""}`}
                 title={hint}
-                aria-haspopup={user ? "menu" : undefined}
-                aria-expanded={user ? menuOpen : undefined}
-                onClick={user ? () => setMenuOpen((o) => !o) : onSignIn}
+                aria-haspopup={signedIn ? "menu" : undefined}
+                aria-expanded={signedIn ? menuOpen : undefined}
+                onClick={signedIn ? () => setMenuOpen((o) => !o) : onSignIn}
             >
-                <Avatar key={user?.picture ?? "none"} src={user?.picture} />
+                <Avatar key={isAdmin ? "admin" : user?.picture ?? "none"} src={isAdmin ? undefined : user?.picture} />
                 <span className="dash-pill-label">{label}</span>
-                <span className="dash-sr-only">{user ? "Signed in. Open account menu." : "Not signed in. Sign in with Google."}</span>
+                <span className="dash-sr-only">{signedIn ? "Signed in. Open account menu." : "Not signed in. Sign in with Google."}</span>
             </button>
 
-            {user && menuOpen && (
+            {signedIn && menuOpen && (
                 <div className="dash-popover" role="menu">
                     <button
                         type="button"
@@ -171,7 +174,7 @@ function AccountPill({ user, isAdmin, onSignIn }) {
                         className="dash-button"
                         style={{ "--hue": "var(--red)" }}
                         autoFocus
-                        onClick={() => { setMenuOpen(false); signOut(); }}
+                        onClick={() => { setMenuOpen(false); onSignOut(); }}
                     >
                         {ICONS.signout}
                         <span className="dash-label">Sign out</span>
@@ -234,6 +237,7 @@ function DashElements({ role = "student" }) {
     const isAdmin = role === "admin" && access === ROLE_ACCESS.admin;
 
     const user = useUser(); // null = guest
+    const navigate = useNavigate();
 
     const [open, setOpen] = useState(false); // only matters on phones
     const close = () => setOpen(false);
@@ -245,6 +249,17 @@ function DashElements({ role = "student" }) {
     const signIn = () => {
         const { ok } = startSignIn(access.home);
         setAuthError(ok ? "" : MISSING_CLIENT_ID);
+    };
+
+    // Admins sign out of the admin login and go back to the welcome page.
+    // Everyone else signs out of Google (the dashboard just updates in place).
+    const handleSignOut = () => {
+        if (isAdmin) {
+            signOutAdmin();
+            navigate("/", { replace: true });
+        } else {
+            signOut();
+        }
     };
 
     // The login finished in the other tab: the dialog has done its job.
@@ -323,7 +338,7 @@ function DashElements({ role = "student" }) {
                 )}
             </aside>
 
-            <AccountPill user={user} isAdmin={isAdmin} onSignIn={signIn} />
+            <AccountPill user={user} isAdmin={isAdmin} onSignIn={signIn} onSignOut={handleSignOut} />
             {authError && !promptOpen && <p className="dash-notice" role="alert">{authError}</p>}
 
             {promptOpen && <SignInPrompt onSignIn={signIn} onClose={closePrompt} error={authError} />}

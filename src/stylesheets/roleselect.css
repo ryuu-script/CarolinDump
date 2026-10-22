@@ -35,8 +35,9 @@
     text-decoration: none;
     color: var(--hue);
     background: var(--btn-bg);
-    border: 1px solid color-mix(in srgb, var(--hue) 40%, var(--border));
+    border: 3px solid transparent; /* reserved so the hover border does not shift the layout */
     border-radius: calc(var(--u) * 1.1);
+    box-shadow: var(--shadow);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: transform 0.2s, background 0.2s, border-color 0.2s, box-shadow 0.2s, color 0.2s;
@@ -48,18 +49,13 @@
 /* Hover effects only on devices that actually hover (not touch) */
 @media (hover: hover) {
     .role-button:hover {
-        background: var(--hue);
         border-color: var(--hue);
-        color: var(--on-accent);
-        box-shadow: var(--shadow);
         transform: scale(1.06);
     }
 }
 
 .role-button:active {
-    background: var(--hue);
     border-color: var(--hue);
-    color: var(--on-accent);
     transform: scale(0.97);
 }
 
