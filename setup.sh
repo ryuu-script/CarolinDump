@@ -1,31 +1,22 @@
 #!/usr/bin/env bash
-# CarolinDump setup script
+# CarolinDump Setup Script
 
 # Usage:   bash setup.sh                    pull latest code, install what's needed, run checks
-#               bash setup.sh --start            pull latest code, install what's needed, run checks, then start the dev server
-#               bash setup.sh --reinstall        wipe node_modules and reinstall from scratch
-#               bash setup.sh --splash-only      show only the splash screen (for testing)
-#
-# Run it from anywhere; it moves into its own folder (the one with package.json).
-# On Windows, run it in Git Bash (installed with Git for Windows).
-#
-# If something fails, the script prints which step it was on, the likely cause,
-# a suggested fix, and an "Environment" block you can copy when asking for help.
+#          bash setup.sh --reinstall        wipe node_modules and reinstall from scratch
 
 set -eE
 cd "$(dirname "$0")" || { echo "Cannot move into the script's folder: $(dirname "$0")"; exit 1; }
 
-# ---------- Output helpers ----------
+# Output helpers
 CURRENT_STEP="starting up"
 FAIL_HANDLED=""
 LAST_FAILED_CMD=""
 LAST_FAILED_LINE=""
 
-ok()   { printf '\033[32m✔\033[0m %s\n' "$1"; }
-warn() { printf '\033[33m!\033[0m %s\n' "$1"; }
-hint() { printf '    \033[2m%s\033[0m\n' "$1"; }
+ok()   { printf '\033[32m[PASS]\033[0m %s\n' "$1"; }
+warn() { printf '\033[33m[WARNING]\033[0m %s\n' "$1"; }
+hint() { printf '    \033[2m[HINT] %s\033[0m\n' "$1"; }
 
-# Prints details about this machine, so a failure can be diagnosed from the output alone
 env_report() {
     echo
     echo "  Environment (copy this when asking for help):"
@@ -40,7 +31,6 @@ env_report() {
     echo
 }
 
-# fail "headline" "detail 1" "detail 2" ...   (prints, shows environment, exits)
 fail() {
     FAIL_HANDLED=1
     printf '\033[31m✖\033[0m %s\n' "$1"
@@ -53,7 +43,6 @@ fail() {
     exit 1
 }
 
-# Catches any command that fails without its own message (because of "set -e")
 trap 'LAST_FAILED_CMD=$BASH_COMMAND; LAST_FAILED_LINE=$LINENO' ERR
 on_exit() {
     local rc=$?
@@ -71,8 +60,6 @@ on_exit() {
 }
 trap on_exit EXIT
 
-# Runs an npm command, shows its output live, and explains common failures.
-# Returns 0 on success, 1 on failure (the caller decides what to do next).
 run_npm() {
     local log status
     log=$(mktemp 2>/dev/null || echo "${TMPDIR:-/tmp}/carolindump-npm.log")
@@ -144,30 +131,28 @@ run_npm() {
     return 1
 }
 
-# ---------- Read flags ----------
-START=0; REINSTALL=0; SPLASH_ONLY=0
+# Read flags
+REINSTALL=0
 for arg in "$@"; do
     case "$arg" in
-        --start)       START=1 ;;
         --reinstall)   REINSTALL=1 ;;
-        --splash-only) SPLASH_ONLY=1 ;;
-        *) warn "Unknown option '$arg' (ignored). Valid options: --start  --reinstall  --splash-only" ;;
+        *) warn "Unknown option '$arg' (ignored). Valid option: --reinstall" ;;
     esac
 done
 
-# ---------- Splash screen (runs before the real setup) ----------
-BANNER_TEXT="CREATED BY: Christian J. Salang"
+# Splash screen
+BANNER_TEXT="CREATED BY: Christian J. Salang,  GitHub: ryuu-script"
 WAIT_SECONDS=5
 
 show_banner() {
     printf '\n\033[1;33m'
-    # Quoted heredoc: backslashes are printed exactly as written
     cat <<'ASCII'
-  _______       _     __  _           ____        _      __ 
- / ___/ /  ____(_)__ / /_(_)__ ____  / __/_______(_)__  / /_
-/ /__/ _ \/ __/ (_-</ __/ / _ `/ _ \_\ \/ __/ __/ / _ \/ __/
-\___/_//_/_/ /_/___/\__/_/\_,_/_//_/___/\__/_/ /_/ .__/\__/ 
-                                                /_/
+   ___                _ _       __           _       _   
+  / __\__ _ _ __ ___ | (_)_ __ / _\ ___ _ __(_)_ __ | |_ 
+ / /  / _` | '__/ _ \| | | '_ \\ \ / __| '__| | '_ \| __|
+/ /__| (_| | | | (_) | | | | | |\ \ (__| |  | | |_) | |_ 
+\____/\__,_|_|  \___/|_|_|_| |_\__/\___|_|  |_| .__/ \__|
+                                              |_|                                           
 ASCII
     printf '\n  %s\n\033[0m\n' "$BANNER_TEXT"
 }
@@ -182,11 +167,9 @@ splash() {
     printf '\r%30s\r\n' ''
 }
 
-# Don't replay the splash if the script restarted itself after a git pull
 if [ -z "$SETUP_RERAN" ]; then
     splash
 fi
-[ "$SPLASH_ONLY" -eq 1 ] && exit 0   # test the splash without running setup
 
 echo "Setting up CarolinDump in: $(pwd)"
 echo
@@ -231,7 +214,7 @@ if [ ! -f package.json ]; then
 fi
 ok "Found package.json"
 
-# 2b. Pull the latest code (only works if this folder is a git clone)
+# 2b. Pull the latest code
 CURRENT_STEP="2b. Pulling the latest code (git pull)"
 if [ -d .git ] && command -v git >/dev/null 2>&1; then
     if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
@@ -251,7 +234,6 @@ if [ -d .git ] && command -v git >/dev/null 2>&1; then
             NEW=$(git rev-parse HEAD)
             if [ "$OLD" != "$NEW" ]; then
                 ok "Updated ${OLD:0:7} -> ${NEW:0:7}"
-                # setup.sh itself may have changed, so restart with the new copy
                 if [ -z "$SETUP_RERAN" ]; then
                     SETUP_RERAN=1 exec bash "./$(basename "$0")" "$@"
                 fi
@@ -305,7 +287,7 @@ else
     fi
 fi
 
-# 3. Stray installs in parent folders (cause the 'two copies of React' error)
+# 3. Stray installs in parent folders
 CURRENT_STEP="3. Checking parent folders for stray installs"
 STRAY=""
 for d in .. ../..; do
@@ -322,7 +304,7 @@ if [ -n "$STRAY" ]; then
     done
 fi
 
-# 4. Install dependencies (skipped if nothing changed since the last run)
+# 4. Install dependencies
 CURRENT_STEP="4. Installing dependencies (npm)"
 STAMP="node_modules/.setup-stamp"
 fingerprint() { cat package.json package-lock.json 2>/dev/null | cksum; }
@@ -341,7 +323,6 @@ else
         warn "No package-lock.json found, so exact versions can't be guaranteed. Commit it from your main PC."
     fi
     if [ -f package-lock.json ] && [ ! -d node_modules ]; then
-        # Fresh machine: exact versions from the lockfile
         if ! run_npm ci; then
             warn "npm ci failed (cause explained above). Falling back to npm install, which may change package-lock.json."
             run_npm install || fail "Installing dependencies failed with both 'npm ci' and 'npm install'." \
@@ -350,7 +331,6 @@ else
                 "Still stuck? Copy the whole output of this run when asking for help."
         fi
     else
-        # node_modules exists but is out of date: npm install only adds/updates what changed
         run_npm install || fail "'npm install' failed." \
             "Read the explanation printed above; the first 'npm error' line is the real cause." \
             "Then try a clean slate: bash setup.sh --reinstall"
@@ -359,7 +339,6 @@ else
     ok "Dependencies installed"
 fi
 
-# Did npm change tracked files on this machine? That blocks the next git pull.
 if [ -d .git ] && [ -n "$(git status --porcelain package.json package-lock.json 2>/dev/null)" ]; then
     warn "npm modified package.json or package-lock.json on this PC."
     hint "The next 'git pull' will be skipped until this is resolved."
@@ -367,9 +346,9 @@ if [ -d .git ] && [ -n "$(git status --porcelain package.json package-lock.json 
     hint "If it's wanted: commit and push it from this PC (or redo it on your main PC)."
 fi
 
-# 5. Make sure specific packages are present (skip the ones already installed)
+# 5. Required packages
 CURRENT_STEP="5. Checking required packages"
-REQUIRED_PKGS="react-router-dom express mysql2 dotenv cors"   # space-separated, add more here
+REQUIRED_PKGS="react-router-dom express mysql2 dotenv cors"
 for pkg in $REQUIRED_PKGS; do
     if [ -d "node_modules/$pkg" ]; then
         ok "$pkg already installed, skipping"
@@ -378,7 +357,7 @@ for pkg in $REQUIRED_PKGS; do
         run_npm install "$pkg" || fail "Could not install $pkg." \
             "Check the package name for typos, and the explanation printed above." \
             "Try: bash setup.sh --reinstall"
-        fingerprint > "$STAMP"   # package.json changed, so refresh the stamp
+        fingerprint > "$STAMP"
         ok "$pkg installed"
     fi
 done
@@ -387,14 +366,13 @@ if [ -d .git ] && [ -n "$(git status --porcelain package.json 2>/dev/null)" ]; t
     warn "otherwise the next git pull will be skipped because of local changes."
 fi
 
-# The dev server needs Vite's launcher to exist
 if [ ! -e node_modules/.bin/vite ]; then
     warn "node_modules/.bin/vite is missing, so 'npm run dev' will fail."
     hint "Vite is listed in devDependencies. If NODE_ENV=production is set in your shell, npm skips devDependencies."
     hint "Check:  echo \"\$NODE_ENV\"   (should be empty)   then run: bash setup.sh --reinstall"
 fi
 
-# 6. Only one copy of React?
+# 6. React copies
 CURRENT_STEP="6. Checking React versions"
 REACT_COPIES=$(npm ls react --all --parseable 2>/dev/null | grep -c '/node_modules/react$' || true)
 if [ "${REACT_COPIES:-0}" -gt 1 ]; then
@@ -414,7 +392,7 @@ CURRENT_STEP="7. Clearing Vite's cache"
 rm -rf node_modules/.vite || warn "Could not clear node_modules/.vite (a file is locked?). Stop any running dev server and try again."
 ok "Vite cache cleared"
 
-# 8. main.jsx filename must match index.html exactly (Linux hosts are case-sensitive)
+# 8. main.jsx filename
 CURRENT_STEP="8. Checking index.html and src/main.jsx"
 if [ ! -f index.html ]; then
     warn "index.html is missing in $(pwd). Vite needs it in the project root."
@@ -428,8 +406,7 @@ elif grep -q "/src/main.jsx" index.html 2>/dev/null && ! ls src 2>/dev/null | gr
     fi
 fi
 
-# 9. Environment file: Google sign-in client ID (browser) + database login (server only).
-#    It is gitignored, so every machine needs its own.
+# 9. Environment file
 CURRENT_STEP="9. Checking the .env file"
 ENV_FILE=".env"
 if [ ! -f "$ENV_FILE" ]; then
@@ -449,8 +426,7 @@ DB_NAME=s23400055_tubolDB
 ENV
     ok "Created .env (client ID and database login left blank)"
 else
-    # .env exists: add any missing keys without touching what is already there
-    [ -n "$(tail -c1 "$ENV_FILE")" ] && printf '\n' >> "$ENV_FILE"   # make sure the last line ends with a newline
+    [ -n "$(tail -c1 "$ENV_FILE")" ] && printf '\n' >> "$ENV_FILE"
     for kv in VITE_GOOGLE_CLIENT_ID= DB_HOST=localhost DB_PORT=3306 DB_USER= DB_PASSWORD= DB_NAME=s23400055_tubolDB; do
         key=${kv%%=*}
         if ! grep -q "^$key=" "$ENV_FILE"; then
@@ -479,27 +455,25 @@ else
     ok ".env has a database login"
 fi
 
+# 10. Seed the database if it is empty
+CURRENT_STEP="10. Seeding the database"
 echo
-ok "Setup complete"
-
-if [ "$START" -eq 1 ]; then
-    CURRENT_STEP="10. Running the dev server"
-    echo "Starting dev server..."
-    npm run dev -- --force || {
-        rc=$?
-        if [ "$rc" -ne 130 ]; then   # 130 = you pressed Ctrl+C, which is normal
-            FAIL_HANDLED=1
-            echo
-            printf '\033[31m✖\033[0m The dev server stopped with an error (exit code %s).\n' "$rc"
-            echo "  What this usually means:"
-            hint "- Port 5173 already in use: close the other dev server, or run: npm run dev -- --port 5174"
-            hint "- 'vite: not found' / 'Cannot find module': run: bash setup.sh --reinstall"
-            hint "- A syntax or import error: the first red error above names the file and line."
-            hint "- 'crypto.hash is not a function' or similar: Node is too old. Needs 20.19+ or 22.12+."
-            env_report
-        fi
-        exit "$rc"
-    }
+if grep -Eq '^(DB_USER|DB_PASSWORD)=[[:space:]]*$' "$ENV_FILE"; then
+    warn "Skipping database seeding: DB_USER or DB_PASSWORD in .env is blank."
+    hint "Fill them in, then run:  npm run seed"
+elif [ ! -f server/seed.js ]; then
+    warn "server/seed.js not found, skipping database seeding."
 else
-    echo "Start the app with:  npm run dev"
+    if node server/seed.js; then
+        ok "Database seed check done"
+    else
+        warn "Database seeding failed (setup continues). Read the message above."
+        hint "Common causes: wrong DB_HOST / DB_USER / DB_PASSWORD in .env, or no network access to the database server."
+        hint "Try again later with:  npm run seed"
+    fi
 fi
+
+echo
+ok "Setup finished..."
+
+echo "Start the app with:  bash quickstart.sh"

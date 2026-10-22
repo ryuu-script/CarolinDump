@@ -1,16 +1,16 @@
 import { getBuilding } from "../data/buildings.js";
 
 // ---------------------------------------------------------------------------
-// Database access for the bathroom tables.
+// Database access for the bathrooms.
 //
 // There is no database yet, so USE_MOCK_DATA = true makes this file return
 // made-up rows. When the database/back end is ready:
 //   1. set USE_MOCK_DATA to false,
 //   2. set VITE_API_URL in a .env file (or change API_BASE below),
-//   3. make the server answer  GET {API_BASE}/bathrooms/:table
+//   3. make the server answer  GET {API_BASE}/bathrooms/:code
 //      with a JSON array of rows: [{ img, room_code, unit, rating }, ...]
 //
-// Never build SQL from the table name on the server without checking it
+// Never use the building code in SQL on the server without checking it
 // against the whitelist in data/buildings.js, since it comes from the URL.
 // ---------------------------------------------------------------------------
 const USE_MOCK_DATA = false;
@@ -42,8 +42,8 @@ const MOCK_UNITS = [
     "Left Urinal", "Middle Urinal", "Right Urinal",
 ];
 
-function mockRows(table) {
-    const prefix = table.toUpperCase();
+function mockRows(code) {
+    const prefix = code.toUpperCase();
     const rows = [];
     for (let floor = 1; floor <= 4; floor++) {
         for (let n = 1; n <= 4; n++) {
@@ -68,7 +68,7 @@ const wait = (ms, signal) =>
         });
     });
 
-// Fetches every row of the table that belongs to `buildingId`.
+// Fetches every bathroom row that belongs to `buildingId`.
 // Resolves to an array of normalized rows (so `rows.length` is the card count).
 export async function fetchBathrooms(buildingId, { signal } = {}) {
     const building = getBuilding(buildingId);
@@ -76,11 +76,11 @@ export async function fetchBathrooms(buildingId, { signal } = {}) {
 
     if (USE_MOCK_DATA) {
         await wait(400, signal);
-        return mockRows(building.table).map(normalizeRow);
+        return mockRows(building.code).map(normalizeRow);
     }
 
-    const res = await fetch(`${API_BASE}/bathrooms/${encodeURIComponent(building.table)}`, { signal });
-    if (!res.ok) throw new Error(`Could not load ${building.table} (HTTP ${res.status})`);
+    const res = await fetch(`${API_BASE}/bathrooms/${encodeURIComponent(building.code)}`, { signal });
+    if (!res.ok) throw new Error(`Could not load ${building.code} (HTTP ${res.status})`);
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("Unexpected response from the server");
     return data.map(normalizeRow);

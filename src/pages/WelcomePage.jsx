@@ -7,7 +7,7 @@ function WelcomePage() {
         <main className="welcomePage">
             <Logo />
             <Header />
-            <RoleSelect studentPath="/student" adminPath="/admin" />
+            <RoleSelect studentPath="/student" adminPath="/admin/login" />
         </main>
     );
 }

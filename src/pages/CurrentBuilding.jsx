@@ -47,7 +47,7 @@ function CurrentBuilding() {
     const [sortKey, setSortKey] = useState("rating");
     const [order, setOrder] = useState("desc");
 
-    // Fetch the matching table whenever the chosen building changes.
+    // Fetch the matching bathrooms whenever the chosen building changes.
     useEffect(() => {
         if (!building) return;
         const controller = new AbortController();
@@ -88,7 +88,7 @@ function CurrentBuilding() {
         <main className="building-page">
             <header className="building-header">
                 <div className="building-heading">
-                    <h1 className="building-title">{building.table.toUpperCase()}</h1>
+                    <h1 className="building-title">{building.code.toUpperCase()}</h1>
                     <p className="building-subtitle">{building.name}</p>
                 </div>
             </header>

@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "server": "node --watch server/server.js",
+    "seed": "node server/seed.js",
+    "seed:fresh": "node server/seed.js --force",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"

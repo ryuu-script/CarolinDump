@@ -1,0 +1,91 @@
+.admin-login {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--u);
+    padding: calc(var(--u) * 2) calc(var(--u) * 1.25);
+    background:
+        radial-gradient(circle at 12% 8%,  color-mix(in srgb, var(--peach) 14%, transparent), transparent 42%),
+        radial-gradient(circle at 88% 88%, color-mix(in srgb, var(--lavender) 14%, transparent), transparent 42%);
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 0.9);
+    width: min(100%, calc(var(--u) * 24));
+    padding: calc(var(--u) * 1.6);
+    background: var(--mantle);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 1.1);
+    box-shadow: var(--shadow);
+}
+
+.admin-title {
+    margin: 0;
+    font-size: calc(var(--u) * 1.8);
+    color: var(--peach);
+    text-align: center;
+}
+
+.admin-field {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 0.35);
+    font-size: calc(var(--u) * 0.95);
+    color: var(--muted);
+}
+
+.admin-field input {
+    min-height: 44px;
+    padding: 0 calc(var(--u) * 0.9);
+    font: inherit;
+    font-size: max(16px, calc(var(--u) * 1.05)); /* 16px+ stops iOS zooming on focus */
+    color: var(--text);
+    background: var(--base);
+    border: 1px solid var(--surface-1);
+    border-radius: calc(var(--u) * 0.6);
+}
+
+.admin-field input:focus-visible {
+    outline: 2px solid var(--peach);
+    outline-offset: 1px;
+}
+
+.admin-error {
+    min-height: 1.4em;
+    margin: 0;
+    font-size: calc(var(--u) * 0.95);
+    color: var(--red);
+}
+
+.admin-submit {
+    min-height: 44px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--on-accent);
+    background: var(--peach);
+    border: 0;
+    border-radius: calc(var(--u) * 0.6);
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.2s;
+}
+
+.admin-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+.admin-submit:not(:disabled):active { transform: scale(0.98); }
+.admin-submit:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+.admin-back {
+    align-self: center;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    color: var(--lavender);
+    text-decoration: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-submit { transition: none; }
+}
