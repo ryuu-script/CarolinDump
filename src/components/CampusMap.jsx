@@ -301,8 +301,12 @@ function CampusMap({ buildings = BUILDINGS }) {
             </svg>
 
             <div className="campus-controls">
-                <button type="button" aria-label="Zoom in" onClick={() => zoomFromCentre(BUTTON_STEP)}>+</button>
-                <button type="button" aria-label="Zoom out" onClick={() => zoomFromCentre(1 / BUTTON_STEP)}>&minus;</button>
+                <button type="button" aria-label="Zoom in" onClick={() => zoomFromCentre(BUTTON_STEP)}>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14" /></svg>
+                </button>
+                <button type="button" aria-label="Zoom out" onClick={() => zoomFromCentre(1 / BUTTON_STEP)}>
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14" /></svg>
+                </button>
                 <button type="button" aria-label="Reset view" onClick={resetView}>Reset</button>
             </div>
         </nav>
