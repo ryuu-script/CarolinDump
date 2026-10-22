@@ -112,25 +112,23 @@
     font-weight: 500;
     color: var(--hue);
     background: var(--btn-bg);
-    border: 1px solid color-mix(in srgb, var(--hue) 40%, var(--border));
+    border: 2px solid transparent; /* reserved so the hover border does not shift the layout */
     border-radius: calc(var(--u) * 0.5);
+    box-shadow: var(--shadow);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
+/* Hover / press: the button keeps its look and gets a colored border */
 @media (hover: hover) {
     .campus-controls button:hover {
-        background: var(--hue);
         border-color: var(--hue);
-        color: var(--on-accent);
     }
 }
 
 .campus-controls button:active {
-    background: var(--hue);
     border-color: var(--hue);
-    color: var(--on-accent);
 }
 
 .campus-controls button:focus-visible {

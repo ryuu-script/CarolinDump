@@ -12,7 +12,6 @@
     width: var(--panel-w, calc(var(--u) * 15));
     padding: calc(var(--u) * 1.5) var(--u);
     background: var(--bg);
-    border: 1px solid var(--border);
     border-radius: calc(var(--u) * 1.2);
     box-shadow: var(--shadow);
 }
@@ -227,7 +226,8 @@
     font-weight: 500;
     color: var(--text);
     background: var(--bg);
-    border: 1px solid var(--border);
+    --hue: var(--lavender); /* guest; signed-in and admin override it below */
+    border: 1px solid transparent; /* no gray outline: the drop shadow does that job */
     border-radius: 999px;
     box-shadow: var(--shadow);
     cursor: pointer;
@@ -235,8 +235,8 @@
     transition: background 0.2s, border-color 0.2s;
 }
 
-.dash-pill.is-signed-in { border-color: color-mix(in srgb, var(--green) 45%, var(--border)); }
-.dash-pill.is-admin { border-color: color-mix(in srgb, var(--red) 45%, var(--border)); }
+.dash-pill.is-signed-in { --hue: var(--green); border-color: color-mix(in srgb, var(--hue) 45%, transparent); }
+.dash-pill.is-admin { --hue: var(--red); border-color: color-mix(in srgb, var(--hue) 45%, transparent); }
 .dash-pill.is-admin .dash-pill-label { color: var(--red); }
 
 .dash-pill-label {
@@ -256,7 +256,10 @@
 }
 
 @media (hover: hover) {
-    .dash-pill:hover { background: color-mix(in srgb, var(--lavender) 12%, var(--bg)); }
+    .dash-pill:hover {
+        background: color-mix(in srgb, var(--hue) 12%, var(--bg));
+        border-color: var(--hue); /* full-strength colored border on hover */
+    }
 }
 
 .dash-pill:active { background: color-mix(in srgb, var(--lavender) 22%, var(--bg)); }
@@ -274,7 +277,6 @@
     min-width: calc(var(--u) * 11);
     padding: calc(var(--u) * 0.5);
     background: var(--bg);
-    border: 1px solid var(--border);
     border-radius: calc(var(--u) * 1.2);
     box-shadow: var(--shadow);
 }
