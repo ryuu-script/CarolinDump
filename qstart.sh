@@ -561,7 +561,7 @@ VITE_GOOGLE_CLIENT_ID=
 # MySQL login, read only by server-api/server_connect.js.
 # No VITE_ prefix on purpose: Vite never sends these to the browser.
 # DB_PORT 3307 is the local end of the SSH tunnel opened by:  bash qstart.sh --run
-DB_HOST=localhost
+DB_HOST=127.0.0.1
 DB_PORT=3307
 DB_USER=
 DB_PASSWORD=
