@@ -1,9 +1,0 @@
-.logo {
-  --logo-size: 8; /* multiples of --u (override with the `size` prop) */
-
-    width: calc(var(--u) * var(--logo-size));
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-}

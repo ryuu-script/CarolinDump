@@ -1,11 +1,13 @@
+/*
+Purpose: Configures Vite: enables React and proxies /api calls to the Node API server in development.
+Dependencies: NULL
+*/
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
-    // Sends fetch("/api/...") from the React app to the Node server (npm run server).
     proxy: { '/api': 'http://localhost:3001' },
   },
 })

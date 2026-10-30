@@ -1,0 +1,471 @@
+/*
+Purpose: Dashboard menu, account pill and sign-in dialog; turns features on or off depending on the user's role.
+Dependencies:
+         JSX: components/Logo.jsx
+         CSS: stylesheets/dashboard.css
+         JS: authentication/auth.js, authentication/admin_auth.js
+*/
+
+// imports
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { startSignIn, signOut, useUser, ALLOWED_DOMAIN } from "../authentication/auth.js";
+import { signOutAdmin } from "../authentication/admin_auth.js";
+import Logo from "./Logo.jsx";
+import guestPfp from "../assets/pfp_guest.png";
+import "../stylesheets/dashboard.css";
+
+// What each role can use. `true` = enabled, `false` = shown but greyed out.
+// `sudo` is different: when it is false the button is not rendered at all.
+// `requiresLogin`: guests who press Submit Review are asked to sign in first. Admins skip that.
+const ROLE_ACCESS = {
+    student: { home: "/student", reviews: true, submit: true, requiresLogin: true,  sudo: false },
+    admin:   { home: "/admin",   reviews: true, submit: true, requiresLogin: false, sudo: true },
+};
+
+// Replace these with real pages later.
+const PATHS = {
+    reviews: "/reviews",
+    submit: "/reviews/submit",
+    sudo: "/sudo",
+};
+
+/*
+Purpose: Wraps icon drawings in a shared svg that follows the current text colour.
+Parameters:
+       children: the svg shapes to draw
+Return value:
+       type: JSX.Element
+       description: the icon
+*/
+function Icon({ children }) {
+    return (
+        <svg
+            className="dash-icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+            focusable="false"
+        >
+            {children}
+        </svg>
+    );
+}
+
+const ICONS = {
+    dashboard: (
+        <Icon>
+            <rect x="3" y="3" width="7" height="7" rx="2" />
+            <rect x="14" y="3" width="7" height="7" rx="2" />
+            <rect x="3" y="14" width="7" height="7" rx="2" />
+            <path d="M17.5 14v7M14 17.5h7" />
+        </Icon>
+    ),
+    reviews: (
+        <Icon>
+            <path d="M6 3h12l4 6-10 13L2 9z" />
+            <path d="M11 3L8 9l4 13 4-13-3-6" />
+            <path d="M2 9h20" />
+        </Icon>
+    ),
+    submit: (
+        <Icon>
+            <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" />
+            <path d="M13.5 6.5l4 4" />
+        </Icon>
+    ),
+    back: (
+        <Icon>
+            <path d="M19 12H5" />
+            <path d="M11 6l-6 6 6 6" />
+        </Icon>
+    ),
+    signout: (
+        <Icon>
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="M16 17l5-5-5-5" />
+            <path d="M21 12H9" />
+        </Icon>
+    ),
+    sudo: (
+        <Icon>
+            <path d="M4 6l6 6-6 6" />
+            <path d="M12 19h8" />
+        </Icon>
+    ),
+};
+
+/*
+Purpose: Shows one dashboard menu entry: a link when enabled, a greyed-out button when disabled, or a plain button when onPress is given.
+Parameters:
+       to: page the link opens
+       icon: icon shown beside the label
+       hue: name of the colour used for the item
+       disabled: true to grey out the item
+       hint: tooltip text
+       onNavigate: called after the link is clicked
+       onPress: if given, makes the item a button that runs this instead of navigating
+       children: label text
+Return value:
+       type: JSX.Element
+       description: the menu item
+*/
+function MenuItem({ to, icon, hue, disabled, hint, onNavigate, onPress, children }) {
+    const style = { "--hue": `var(--${hue})` };
+    const content = (
+        <>
+            {icon}
+            <span className="dash-label">{children}</span>
+        </>
+    );
+    if (disabled || onPress) {
+        return (
+            <button type="button" className="dash-button" style={style} disabled={disabled} title={hint} onClick={onPress}>
+                {content}
+            </button>
+        );
+    }
+    return (
+        <NavLink className="dash-button" style={style} to={to} end onClick={onNavigate}>
+            {content}
+        </NavLink>
+    );
+}
+
+/*
+Purpose: Shows the default guest picture.
+Parameters: NULL
+Return value:
+       type: JSX.Element
+       description: the guest avatar image
+*/
+function EmptyAvatar() {
+    return <img className="dash-avatar" src={guestPfp} alt="" aria-hidden="true" />;
+}
+
+/*
+Purpose: Shows the user's profile photo, falling back to the guest picture if it is missing or fails to load.
+Parameters:
+       src: URL of the profile photo
+Return value:
+       type: JSX.Element
+       description: the avatar image
+*/
+function Avatar({ src }) {
+    const [broken, setBroken] = useState(false);
+    if (!src || broken) return <EmptyAvatar />;
+    return (
+        <img
+            className="dash-avatar"
+            src={src}
+            alt=""
+            referrerPolicy="no-referrer" // Google's photo host can refuse requests that carry a referrer
+            onError={() => setBroken(true)}
+        />
+    );
+}
+
+/*
+Purpose: Floating pill that signs guests in, or opens a sign-out menu for signed-in users and admins.
+Parameters:
+       user: signed-in Google user, or null for a guest
+       isAdmin: true when the viewer is an admin
+       onSignIn: called when a guest clicks the pill
+       onSignOut: called when Sign out is chosen
+Return value:
+       type: JSX.Element
+       description: the account pill and its menu
+*/
+function AccountPill({ user, isAdmin, onSignIn, onSignOut }) {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const wrapRef = useRef(null);
+
+    // Close the sign-out menu on Escape or a click outside it. It also closes if the person signs out.
+    useEffect(() => {
+        if (!menuOpen) return;
+        /*
+        Purpose: Closes the account menu when Escape is pressed.
+        Parameters:
+               e: keydown event
+        Return value:
+               type: void
+               description: NULL
+        */
+        const onKey = (e) => e.key === "Escape" && setMenuOpen(false);
+        /*
+        Purpose: Closes the account menu when the user clicks outside of it.
+        Parameters:
+               e: pointerdown event
+        Return value:
+               type: void
+               description: NULL
+        */
+        const onPointer = (e) => !wrapRef.current?.contains(e.target) && setMenuOpen(false);
+        window.addEventListener("keydown", onKey);
+        document.addEventListener("pointerdown", onPointer);
+        return () => {
+            window.removeEventListener("keydown", onKey);
+            document.removeEventListener("pointerdown", onPointer);
+        };
+    }, [menuOpen]);
+
+    const signedIn = isAdmin || Boolean(user);
+    const label = isAdmin ? "Admin" : user ? user.email : "Guest";
+    const hint = signedIn ? "Account menu" : "Sign in with your USC Google account";
+
+    return (
+        <div className="dash-account" ref={wrapRef}>
+            <button
+                type="button"
+                className={`dash-pill${isAdmin ? " is-admin" : ""}${signedIn ? " is-signed-in" : ""}`}
+                title={hint}
+                aria-haspopup={signedIn ? "menu" : undefined}
+                aria-expanded={signedIn ? menuOpen : undefined}
+                onClick={signedIn ? () => setMenuOpen((o) => !o) : onSignIn}
+            >
+                <Avatar key={isAdmin ? "admin" : user?.picture ?? "none"} src={isAdmin ? undefined : user?.picture} />
+                <span className="dash-pill-label">{label}</span>
+                <span className="dash-sr-only">{signedIn ? "Signed in. Open account menu." : "Not signed in. Sign in with Google."}</span>
+            </button>
+
+            {signedIn && menuOpen && (
+                <div className="dash-popover" role="menu">
+                    <button
+                        type="button"
+                        role="menuitem"
+                        className="dash-button"
+                        style={{ "--hue": "var(--red)" }}
+                        autoFocus
+                        onClick={() => { setMenuOpen(false); onSignOut(); }}
+                    >
+                        {ICONS.signout}
+                        <span className="dash-label">Sign out</span>
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+/*
+Purpose: Dialog asking guests to sign in with Google before they can submit a review.
+Parameters:
+       onSignIn: called when Sign in with Google is clicked
+       onClose: called when the dialog is dismissed
+       error: error message to show, if any
+Return value:
+       type: JSX.Element
+       description: the sign-in dialog
+*/
+function SignInPrompt({ onSignIn, onClose, error }) {
+    const primaryRef = useRef(null);
+
+    useEffect(() => {
+        const previous = document.activeElement;
+        primaryRef.current?.focus();
+        /*
+        Purpose: Closes the sign-in dialog when Escape is pressed.
+        Parameters:
+               e: keydown event
+        Return value:
+               type: void
+               description: NULL
+        */
+        const onKey = (e) => e.key === "Escape" && onClose();
+        window.addEventListener("keydown", onKey);
+        return () => {
+            window.removeEventListener("keydown", onKey);
+            previous?.focus?.(); // put focus back on Submit Review
+        };
+    }, [onClose]);
+
+    return (
+        <div className="dash-modal-backdrop" onClick={onClose}>
+            <div
+                className="dash-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="dash-modal-title"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <h2 id="dash-modal-title" className="dash-modal-title">Sign in to submit a review</h2>
+                <p className="dash-modal-text">
+                    Reviews are for Carolinians. Sign in with your @{ALLOWED_DOMAIN} Google account to continue.
+                    Google opens in a new tab.
+                </p>
+                {error && <p className="dash-modal-error" role="alert">{error}</p>}
+                <div className="dash-modal-actions">
+                    <button type="button" ref={primaryRef} className="dash-modal-button is-primary" onClick={onSignIn}>
+                        Sign in with Google
+                    </button>
+                    <button type="button" className="dash-modal-button" onClick={onClose}>
+                        Not now
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+const MISSING_CLIENT_ID = "Google sign-in isn't set up yet. Add VITE_GOOGLE_CLIENT_ID to your .env file.";
+
+/*
+Purpose: Builds the sidebar (hamburger menu on phones), account pill and sign-in dialog, enabling features by role.
+Parameters:
+       role: "student" or "admin"; unknown roles get the most limited access
+Return value:
+       type: JSX.Element
+       description: the dashboard menu and related controls
+*/
+function Dash_Elements({ role = "student" }) {
+    // An unknown role gets the most limited access.
+    const access = ROLE_ACCESS[role] ?? ROLE_ACCESS.student;
+    const isAdmin = role === "admin" && access === ROLE_ACCESS.admin;
+
+    const user = useUser(); // null = guest
+    const navigate = useNavigate();
+
+    const [open, setOpen] = useState(false); // only matters on phones
+    /*
+    Purpose: Closes the phone menu.
+    Parameters: NULL
+    Return value:
+           type: void
+           description: NULL
+    */
+    const close = () => setOpen(false);
+
+    const [promptOpen, setPromptOpen] = useState(false); // "sign in first" dialog
+    const [authError, setAuthError] = useState("");
+
+    /*
+    Purpose: Starts the Google sign-in in a new tab and shows an error if sign-in is not set up.
+    Parameters: NULL
+    Return value:
+           type: void
+           description: NULL
+    */
+    const signIn = () => {
+        const { ok } = startSignIn(access.home);
+        setAuthError(ok ? "" : MISSING_CLIENT_ID);
+    };
+
+    /*
+    Purpose: Signs out the admin (and returns to the welcome page) or the Google user (staying on the page).
+    Parameters: NULL
+    Return value:
+           type: void
+           description: NULL
+    */
+    const handleSignOut = () => {
+        if (isAdmin) {
+            signOutAdmin();
+            navigate("/", { replace: true });
+        } else {
+            signOut();
+        }
+    };
+
+    // The login finished in the other tab: the dialog has done its job.
+    useEffect(() => {
+        if (user) setPromptOpen(false);
+    }, [user]);
+
+    /*
+    Purpose: Closes the sign-in dialog and clears its error.
+    Parameters: NULL
+    Return value:
+           type: void
+           description: NULL
+    */
+    const closePrompt = useCallback(() => {
+        setPromptOpen(false);
+        setAuthError("");
+    }, []);
+
+    // Guests (who are not admins) are asked to sign in before they can submit.
+    const guestMustSignIn = access.requiresLogin && !user;
+
+    // Escape closes the menu.
+    useEffect(() => {
+        if (!open) return;
+        /*
+        Purpose: Closes the phone menu when Escape is pressed.
+        Parameters:
+               e: keydown event
+        Return value:
+               type: void
+               description: NULL
+        */
+        const onKey = (e) => e.key === "Escape" && setOpen(false);
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open]);
+
+    return (
+        <>
+            <button
+                type="button"
+                className="dash-toggle"
+                aria-label={open ? "Close menu" : "Open menu"}
+                aria-expanded={open}
+                aria-controls="dash-sidebar"
+                onClick={() => setOpen((o) => !o)}
+            >
+                <span className="dash-toggle-bar" />
+                <span className="dash-toggle-bar" />
+                <span className="dash-toggle-bar" />
+            </button>
+
+            <div className={`dash-backdrop${open ? " is-open" : ""}`} onClick={close} aria-hidden="true" />
+
+            <aside id="dash-sidebar" className={`dash-sidebar${open ? " is-open" : ""}`}>
+                <div className="dash-brand">
+                    <Logo size={5} />
+                    <p className="dash-title">CarolinDump</p>
+                </div>
+
+                <nav className="dash-menu" aria-label="Dashboard">
+                    <MenuItem to={access.home} icon={ICONS.dashboard} hue="lavender" onNavigate={close}>
+                        Dashboard
+                    </MenuItem>
+                    <MenuItem to={PATHS.reviews} icon={ICONS.reviews} hue="green" disabled={!access.reviews} onNavigate={close}>
+                        User Reviews
+                    </MenuItem>
+                    <MenuItem
+                        to={PATHS.submit}
+                        icon={ICONS.submit}
+                        hue="yellow"
+                        disabled={!access.submit}
+                        hint="Not available for your role"
+                        onNavigate={close}
+                        onPress={guestMustSignIn ? () => { close(); setAuthError(""); setPromptOpen(true); } : undefined}
+                    >
+                        Submit Review
+                    </MenuItem>
+                    <Link className="dash-button dash-back" style={{ "--hue": "var(--red)" }} to="/" onClick={close} aria-label="Back">
+                        {ICONS.back}
+                        <span className="dash-label">Back</span>
+                    </Link>
+                </nav>
+
+                {access.sudo && (
+                    <div className="dash-bottom">
+                        <MenuItem to={PATHS.sudo} icon={ICONS.sudo} hue="red" onNavigate={close}>Sudo Mode</MenuItem>
+                    </div>
+                )}
+            </aside>
+
+            <AccountPill user={user} isAdmin={isAdmin} onSignIn={signIn} onSignOut={handleSignOut} />
+            {authError && !promptOpen && <p className="dash-notice" role="alert">{authError}</p>}
+
+            {promptOpen && <SignInPrompt onSignIn={signIn} onClose={closePrompt} error={authError} />}
+        </>
+    );
+}
+
+export default Dash_Elements;

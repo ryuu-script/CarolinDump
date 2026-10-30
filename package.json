@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "server": "node --watch server/server.js",
-    "seed": "node server/seed.js",
-    "seed:fresh": "node server/seed.js --force",
+    "server": "node --watch server-api/server_connect.js",
+    "seed": "node server-api/database_seeder.js",
+    "seed:fresh": "node server-api/database_seeder.js --force",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"

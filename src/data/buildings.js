@@ -1,6 +1,7 @@
-// Which building code (the `building` column in the database) belongs to which building.
-// The key is the building `id` used by CampusMap (and the URL: /building/:buildingId).
-// `code` is the value stored in the database's `building` column (and sent to the API).
+/*
+Purpose: Maps each campus building id to its database code and display name.
+Dependencies: NULL
+*/
 export const BUILDINGS = {
     lb:     { code: "LB",     name: "Fr. Lawrence Bunzel Building" },
     af:     { code: "AF",     name: "Safad Building" },
@@ -15,5 +16,12 @@ export const BUILDINGS = {
     rh:     { code: "RH",     name: "Robert Hoeppener Building" },
 };
 
-// Returns { code, name } for a building id, or null when the id is unknown.
+/*
+Purpose: Looks up a campus building by its id.
+Parameters:
+       id: building id (case-insensitive), e.g. "lb"; null/undefined is treated as unknown
+Return value:
+       type: { code: string, name: string } | null
+       description: the matching building, or null when the id is unknown
+*/
 export const getBuilding = (id) => BUILDINGS[String(id ?? "").toLowerCase()] ?? null;

@@ -1,3 +1,12 @@
+/*
+Dependencies: global.css
+        Components: Campus_Map.jsx, Dash_Elements.jsx
+        Pages: Dashboard.jsx
+*/
+
+/*
+Section: Dashboard
+*/
 .dashboard {
     --panel-w: calc(var(--u) * 15);   /* sidebar width */
     --gap: calc(var(--u) * 0.75);     /* space between the floating sidebar and the screen edge */
@@ -19,4 +28,584 @@
 /* Phones: the sidebar becomes a hamburger menu, so the map gets the whole screen. */
 @media (max-width: 768px) {
     .dashboard { --sidebar-w: 0px; }
+}
+
+/*
+Section: Dash_Elements
+*/
+.dash-sidebar {
+    position: fixed;
+    /* the gap on every side is what makes it float; also keeps clear of notches / home bar */
+    top: max(var(--gap, 12px), env(safe-area-inset-top));
+    bottom: max(var(--gap, 12px), env(safe-area-inset-bottom));
+    left: max(var(--gap, 12px), env(safe-area-inset-left));
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 1.5);
+    width: var(--panel-w, calc(var(--u) * 15));
+    padding: calc(var(--u) * 1.5) var(--u);
+    background: var(--bg);
+    border-radius: calc(var(--u) * 1.2);
+    box-shadow: var(--shadow);
+}
+
+.dash-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: calc(var(--u) * 0.5);
+}
+
+.dash-title {
+    font-size: calc(var(--u) * 1.6);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text-h);
+    background: linear-gradient(90deg, #fab387, #cba6f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    overflow-wrap: anywhere;
+}
+
+.dash-menu {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 0.6);
+}
+
+/* Sudo sits at the bottom of the sidebar */
+.dash-bottom {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    padding-top: var(--u);
+    border-top: 1px solid var(--border);
+}
+
+.dash-button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: calc(var(--u) * 0.9);
+    width: 100%;
+    min-height: calc(var(--u) * 3.2);
+    padding: 0 calc(var(--u) * 1.2);
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.1);
+    font-weight: 500;
+    text-decoration: none;
+    --hue: var(--accent); /* each item sets its own colour (see Dash_Elements.jsx) */
+    color: var(--hue);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s, color 0.2s;
+}
+
+.dash-icon {
+    flex: none;
+    width: 1.4em;
+    height: 1.4em;
+}
+
+.dash-label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+/* Active page: pill tinted with the item's own colour */
+.dash-button.active {
+    background: color-mix(in srgb, var(--hue) 24%, var(--bg));
+}
+
+/* Hover effects only on devices that actually hover (not touch) */
+@media (hover: hover) {
+    .dash-button:not(:disabled):not(.active):hover {
+        background: color-mix(in srgb, var(--hue) 14%, var(--bg));
+    }
+}
+
+.dash-button:not(:disabled):active {
+    background: color-mix(in srgb, var(--hue) 24%, var(--bg));
+}
+
+.dash-button:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 2px;
+}
+
+.dash-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.dash-toggle,
+.dash-backdrop {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .dash-toggle {
+        --hue: var(--lavender);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        position: fixed;
+        top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5); /* nudged down */
+        left: calc(max(var(--u), env(safe-area-inset-left)) + var(--u) * 0.5); /* nudged right, clear of the panel's rounded corner */
+        z-index: 40;
+        width: max(44px, calc(var(--u) * 2.8));
+        height: max(44px, calc(var(--u) * 2.8));
+        padding: 0;
+        color: var(--hue);
+        background: var(--btn-bg);
+        border: 1px solid color-mix(in srgb, var(--hue) 40%, var(--border));
+        border-radius: calc(var(--u) * 0.5);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    .dash-toggle-bar {
+        width: calc(var(--u) * 1.2);
+        height: 2px;
+        background: currentColor;
+        transition: transform 0.2s, opacity 0.2s;
+    }
+
+    /* The three bars turn into an X while the menu is open */
+    .dash-toggle[aria-expanded="true"] .dash-toggle-bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .dash-toggle[aria-expanded="true"] .dash-toggle-bar:nth-child(2) { opacity: 0; }
+    .dash-toggle[aria-expanded="true"] .dash-toggle-bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .dash-toggle:active {
+        background: var(--hue);
+        border-color: var(--hue);
+        color: var(--on-accent);
+    }
+
+    .dash-toggle:focus-visible {
+        outline: 2px solid var(--hue);
+        outline-offset: 2px;
+    }
+
+    /* The sidebar becomes a panel that slides in from the left */
+    .dash-sidebar {
+        z-index: 30;
+        width: min(calc(var(--u) * 20), 85vw);
+        /* leave room for the hamburger button, which stays on top */
+        padding-top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5 + max(44px, calc(var(--u) * 2.8)) + var(--u));
+        transform: translateX(calc(-100% - var(--gap, 12px) * 2)); /* fully off screen, shadow included */
+        visibility: hidden; /* closed panel is skipped by Tab and screen readers */
+        transition: transform 0.25s ease, visibility 0s linear 0.25s;
+    }
+
+    .dash-sidebar.is-open {
+        transform: none;
+        visibility: visible;
+        transition: transform 0.25s ease, visibility 0s;
+    }
+
+    /* Dimmed area behind the panel. Tap it to close. */
+    .dash-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background: rgba(17, 17, 27, 0.7);
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.25s, visibility 0s linear 0.25s;
+    }
+
+    .dash-backdrop.is-open {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.25s, visibility 0s;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-button, .dash-toggle, .dash-toggle-bar,
+    .dash-sidebar, .dash-backdrop { transition: none; }
+}
+
+.dash-account {
+    position: fixed;
+    top: max(var(--gap, 12px), env(safe-area-inset-top));
+    right: max(var(--gap, 12px), env(safe-area-inset-right));
+    z-index: 20;
+    max-width: calc(100vw - var(--gap, 12px) * 2);
+}
+
+.dash-pill {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--u) * 0.6);
+    max-width: 100%;
+    min-height: max(40px, calc(var(--u) * 3));
+    padding: 4px calc(var(--u) * 1.1) 4px 4px;
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.05);
+    font-weight: 500;
+    color: var(--text);
+    background: var(--bg);
+    --hue: var(--lavender); /* guest; signed-in and admin override it below */
+    border: 1px solid transparent; /* no gray outline: the drop shadow does that job */
+    border-radius: 999px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.dash-pill.is-signed-in { --hue: var(--green); border-color: color-mix(in srgb, var(--hue) 45%, transparent); }
+.dash-pill.is-admin { --hue: var(--red); border-color: color-mix(in srgb, var(--hue) 45%, transparent); }
+.dash-pill.is-admin .dash-pill-label { color: var(--red); }
+
+.dash-pill-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* long emails get "..." instead of growing the pill */
+}
+
+.dash-avatar {
+    flex: none;
+    width: max(32px, calc(var(--u) * 2.4));
+    height: max(32px, calc(var(--u) * 2.4));
+    border-radius: 50%;
+    object-fit: cover;
+    background: var(--surface-0);
+}
+
+@media (hover: hover) {
+    .dash-pill:hover {
+        background: color-mix(in srgb, var(--hue) 12%, var(--bg));
+        border-color: var(--hue); /* full-strength colored border on hover */
+    }
+}
+
+.dash-pill:active { background: color-mix(in srgb, var(--lavender) 22%, var(--bg)); }
+
+.dash-pill:focus-visible {
+    outline: 2px solid var(--lavender);
+    outline-offset: 2px;
+}
+
+/* Sign-out menu under the pill */
+.dash-popover {
+    position: absolute;
+    top: calc(100% + calc(var(--u) * 0.5));
+    right: 0;
+    min-width: calc(var(--u) * 11);
+    padding: calc(var(--u) * 0.5);
+    background: var(--bg);
+    border-radius: calc(var(--u) * 1.2);
+    box-shadow: var(--shadow);
+}
+
+/* Small message under the pill (e.g. sign-in not configured) */
+.dash-notice {
+    position: fixed;
+    top: calc(max(var(--gap, 12px), env(safe-area-inset-top)) + max(40px, calc(var(--u) * 3)) + var(--u) * 0.6);
+    right: max(var(--gap, 12px), env(safe-area-inset-right));
+    z-index: 20;
+    max-width: min(calc(var(--u) * 22), calc(100vw - var(--gap, 12px) * 2));
+    padding: calc(var(--u) * 0.7) calc(var(--u) * 1);
+    font-size: calc(var(--u) * 0.95);
+    text-align: left;
+    color: var(--red);
+    background: var(--bg);
+    border: 1px solid color-mix(in srgb, var(--red) 45%, var(--border));
+    border-radius: calc(var(--u) * 0.8);
+    box-shadow: var(--shadow);
+}
+
+.dash-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+.dash-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60; /* above the hamburger (40) and the mobile panel (30) */
+    display: grid;
+    place-items: center;
+    padding: calc(var(--u) * 1.25);
+    background: rgba(17, 17, 27, 0.7);
+}
+
+.dash-modal {
+    width: min(calc(var(--u) * 26), 100%);
+    padding: calc(var(--u) * 1.75);
+    text-align: left;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--u) * 1.2);
+    box-shadow: var(--shadow);
+}
+
+.dash-modal-title {
+    margin: 0 0 calc(var(--u) * 0.6);
+    font-size: calc(var(--u) * 1.6);
+    line-height: 1.2;
+    color: var(--text-h);
+}
+
+.dash-modal-text {
+    font-size: calc(var(--u) * 1.05);
+    color: var(--muted);
+}
+
+.dash-modal-error {
+    margin-top: calc(var(--u) * 0.8);
+    font-size: calc(var(--u) * 0.95);
+    color: var(--red);
+}
+
+.dash-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: calc(var(--u) * 0.6);
+    margin-top: calc(var(--u) * 1.4);
+}
+
+.dash-modal-button {
+    flex: 1 1 auto;
+    min-height: 44px;
+    padding: 0 calc(var(--u) * 1.4);
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1.05);
+    font-weight: 500;
+    color: var(--text);
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s;
+}
+
+.dash-modal-button.is-primary {
+    color: var(--on-accent);
+    background: var(--lavender);
+    border-color: var(--lavender);
+}
+
+@media (hover: hover) {
+    .dash-modal-button:not(.is-primary):hover { background: var(--surface-1); }
+    .dash-modal-button.is-primary:hover { background: color-mix(in srgb, var(--lavender) 85%, white); }
+}
+
+.dash-modal-button:focus-visible {
+    outline: 2px solid var(--lavender);
+    outline-offset: 2px;
+}
+
+/* Phones: sit level with the hamburger button, and leave room for it on the left */
+@media (max-width: 768px) {
+    .dash-account {
+        top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5);
+        right: calc(max(var(--u), env(safe-area-inset-right)) + var(--u) * 0.5);
+        max-width: calc(100vw - max(44px, calc(var(--u) * 2.8)) - var(--u) * 4);
+    }
+    .dash-pill { min-height: max(44px, calc(var(--u) * 2.8)); }
+    .dash-notice {
+        top: calc(max(var(--u), env(safe-area-inset-top)) + var(--u) * 0.5 + max(44px, calc(var(--u) * 2.8)) + var(--u) * 0.6);
+        right: calc(max(var(--u), env(safe-area-inset-right)) + var(--u) * 0.5);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dash-pill, .dash-modal-button { transition: none; }
+}
+
+/*
+Section: Campus_Map
+*/
+/* The map fills the whole screen: no frame, no box. */
+.campus-map {
+    --map-bg: var(--mantle);
+    --map-line: var(--surface-2);
+    --map-text: var(--text);
+    --map-hover: var(--lavender);  /* each building overrides this with its own accent below */
+    --map-building-fill: var(--surface-0);
+
+    --road-edge: var(--surface-0);
+    --road-surface: var(--base);
+
+    position: fixed;
+    inset: 0;
+    padding-left: var(--sidebar-w, 0px); /* room for the floating dashboard sidebar */
+    background: var(--map-bg);
+    overscroll-behavior: none; /* no pull-to-refresh or bounce while dragging the map */
+}
+
+.campus-map svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    touch-action: none; /* we handle pinch and drag ourselves */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none; /* no long-press menu on iOS */
+    cursor: grab;
+    overflow: visible; /* let the map keep drawing underneath the floating sidebar, not get cut at its edge */
+}
+
+.campus-map svg:active { cursor: grabbing; }
+
+.campus-road-edge,
+.campus-road-surface {
+    fill: none;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    pointer-events: none;
+}
+
+.campus-road-edge    { stroke: var(--road-edge);    stroke-width: 12; }
+.campus-road-surface { stroke: var(--road-surface); stroke-width: 10; }
+
+
+.campus-block {
+    cursor: pointer;
+    --hue: var(--map-hover);
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+.campus-shape {
+    fill: color-mix(in srgb, var(--map-hover) 8%, var(--map-building-fill));
+    pointer-events: all;
+    stroke: color-mix(in srgb, var(--map-hover) 55%, var(--map-line));
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke; /* line stays the same thickness when zooming */
+    transition: stroke 0.2s, fill 0.2s;
+}
+
+.campus-text {
+    fill: var(--map-hover); /* same accent as the building's outline */
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    pointer-events: none;
+    transition: fill 0.2s;
+}
+
+/* Mix and match: buildings cycle through all six accents */
+.campus-block:nth-of-type(6n+1) { --map-hover: var(--red); }
+.campus-block:nth-of-type(6n+2) { --map-hover: var(--peach); }
+.campus-block:nth-of-type(6n+3) { --map-hover: var(--yellow); }
+.campus-block:nth-of-type(6n+4) { --map-hover: var(--green); }
+.campus-block:nth-of-type(6n+5) { --map-hover: var(--blue); }
+.campus-block:nth-of-type(6n)   { --map-hover: var(--lavender); }
+
+/* Keyboard focus */
+.campus-block:focus-visible .campus-shape {
+    stroke: var(--map-hover);
+    fill: color-mix(in srgb, var(--map-hover) 18%, var(--map-building-fill));
+}
+
+/* Mouse hover (not on touch screens) */
+@media (hover: hover) {
+    .campus-block:hover .campus-shape {
+        stroke: var(--map-hover);
+        fill: color-mix(in srgb, var(--map-hover) 18%, var(--map-building-fill));
+    }
+}
+
+.campus-controls {
+    position: absolute;
+    right: max(calc(var(--u) * 1), env(safe-area-inset-right));
+    bottom: max(calc(var(--u) * 1), env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--u) * 0.4);
+}
+
+.campus-controls button {
+    --hue: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    min-width: calc(var(--u) * 2.4);
+    height: calc(var(--u) * 2.4);
+    padding: 0 calc(var(--u) * 0.6);
+    font-family: var(--sans);
+    font-size: calc(var(--u) * 1);
+    font-weight: 500;
+    color: var(--hue);
+    background: var(--btn-bg);
+    border: 2px solid transparent; /* reserved so the hover border does not shift the layout */
+    border-radius: calc(var(--u) * 0.5);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.campus-controls button svg {
+    width: 1.1em;
+    height: 1.1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    pointer-events: none; /* clicks go to the button, not the icon */
+    cursor: inherit; /* undo the map's grab cursor */
+    overflow: hidden;
+}
+
+/* Hover / press: the button keeps its look and gets a colored border */
+@media (hover: hover) {
+    .campus-controls button:hover {
+        border-color: var(--hue);
+    }
+}
+
+.campus-controls button:active {
+    border-color: var(--hue);
+}
+
+.campus-controls button:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 2px;
+}
+
+.campus-controls button:nth-child(1) { --hue: var(--green); }
+.campus-controls button:nth-child(2) { --hue: var(--peach); }
+.campus-controls button:nth-child(3) { --hue: var(--blue); }
+
+/* Touch screens: 44px tap targets, and room for the home indicator */
+@media (pointer: coarse) {
+    .campus-controls button {
+        min-width: 44px;
+        height: 44px;
+        font-size: 18px;
+    }
+    .campus-controls {
+        gap: 8px;
+        right: max(16px, env(safe-area-inset-right));
+        bottom: max(16px, env(safe-area-inset-bottom));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .campus-shape, .campus-text, .campus-controls button { transition: none; }
 }
