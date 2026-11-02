@@ -6,6 +6,7 @@ Dependencies:
 */
 import dotenv from "dotenv";
 import { fileURLToPath } from "node:url";
+import path from "node:path";
 import express from "express";
 import cors from "cors";
 import mysql from "mysql2/promise";
@@ -120,6 +121,11 @@ app.post("/api/admin/login", async (req, res) => {
 });
 
 const port = Number(process.env.PORT ?? 3001);
+const dist = fileURLToPath(new URL("../dist", import.meta.url));
+app.use(express.static(dist));
+app.get("/{*splat}", (req, res) => res.sendFile(path.join(dist, "index.html")));
+
+
 /*
 Purpose: Startup callback that runs once the server is listening: logs the address and checks that the database connection works.
 Parameters: NULL
