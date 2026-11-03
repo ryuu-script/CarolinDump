@@ -1,5 +1,5 @@
 /*
-Purpose: Displays one bathroom (photos, room code, unit and ruby rating) in the building page grid.
+Purpose: Displays one bathroom (photos, room code, unit and ruby rating) in the building page grid and opens Submit Review when clicked.
 Dependencies:
          JSX: NULL
          CSS: stylesheets/building.css
@@ -8,6 +8,7 @@ Dependencies:
 
 // imports
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../stylesheets/building.css";
 
 const MAX_RATING = 5;
@@ -37,8 +38,33 @@ function Ruby({ on }) {
 }
 
 /*
-Purpose: Shows one bathroom with its photo gallery, room code, unit and 1-5 ruby rating.
+Purpose: Builds the Submit Review URL with query parameters for a selected building and comfort room unit.
 Parameters:
+       buildingId: building route id such as "lb"
+       id: database id of the bathroom unit, if available
+       room_code: room code such as "LB107"
+       unit: comfort room unit label such as "Left Stall"
+Return value:
+       type: string
+       description: relative URL to /reviews/submit with prefill query parameters
+*/
+function buildSubmitUrl(buildingId, id, room_code, unit) {
+    const params = new URLSearchParams();
+    params.set("building", String(buildingId).toLowerCase());
+    if (Number.isInteger(id) && id > 0) params.set("bathroom", String(id));
+    if (room_code) params.set("room", room_code);
+    if (unit) params.set("unit", unit);
+    params.set("locked", "1");
+    return `/reviews/submit?${params.toString()}`;
+}
+
+/*
+Purpose: Shows one bathroom with its photo gallery, room code, unit and 1-5 ruby rating, navigating to Submit Review when clicked.
+Parameters:
+       id: database id of the bathroom row, if available
+       buildingId: building route id such as "lb"
+       building: building metadata object ({ code, name }), if available
+       onSelect: optional callback invoked when the card is activated
        img: list of photo URLs (only the first 3 are used)
        room_code: room code such as LB446
        unit: unit or gender label of the bathroom
@@ -46,15 +72,84 @@ Parameters:
        index: position in the grid, used to stagger the entry animation
 Return value:
        type: JSX.Element
-       description: the bathroom card
+       description: the interactive bathroom card
 */
-function BathroomCard({ img = [], room_code, unit, rating, index = 0 }) {
+function BathroomCard({
+    id = null,
+    buildingId = "",
+    building = null,
+    onSelect,
+    img = [],
+    room_code,
+    unit,
+    rating,
+    index = 0,
+}) {
+    const navigate = useNavigate();
     const [active, setActive] = useState(0);
     const photos = img.slice(0, 3);
     const stars = Math.min(MAX_RATING, Math.max(1, Math.round(rating)));
+    const interactive = Boolean(onSelect || buildingId);
+
+    /*
+    Purpose: Navigates to Submit Review with this card's building and unit prefilled, or runs onSelect when provided.
+    Parameters: NULL
+    Return value:
+           type: void
+           description: NULL
+    */
+    const handleActivate = () => {
+        if (!interactive) return;
+        if (onSelect) {
+            onSelect({ id, buildingId, building, room_code, unit, rating });
+            return;
+        }
+        const normalizedBuildingId = String(buildingId).toLowerCase();
+        navigate(buildSubmitUrl(normalizedBuildingId, id, room_code, unit), {
+            state: {
+                prefill: {
+                    buildingId: normalizedBuildingId,
+                    buildingCode: building?.code ?? normalizedBuildingId.toUpperCase(),
+                    buildingName: building?.name ?? "",
+                    bathroomId: id,
+                    room_code,
+                    unit,
+                    locked: true,
+                },
+            },
+        });
+    };
+
+    /*
+    Purpose: Activates the card when Enter or Space is pressed while focus is on the card itself.
+    Parameters:
+           e: keyboard event
+    Return value:
+           type: void
+           description: NULL
+    */
+    const handleKeyDown = (e) => {
+        if (e.target !== e.currentTarget) return;
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleActivate();
+        }
+    };
 
     return (
-        <article className="bathroom-card" style={{ "--i": index }}>
+        <article
+            className={`bathroom-card${interactive ? " is-clickable" : ""}`}
+            style={{ "--i": index }}
+            role={interactive ? "link" : undefined}
+            tabIndex={interactive ? 0 : undefined}
+            aria-label={
+                interactive
+                    ? `${room_code} ${unit}, rated ${stars} out of ${MAX_RATING}. Select to submit a review.`
+                    : undefined
+            }
+            onClick={interactive ? handleActivate : undefined}
+            onKeyDown={interactive ? handleKeyDown : undefined}
+        >
             <div className="bathroom-photo">
                 {photos.length > 0 ? (
                     <img
@@ -77,7 +172,10 @@ function BathroomCard({ img = [], room_code, unit, rating, index = 0 }) {
                             className={`bathroom-thumb${i === active ? " is-active" : ""}`}
                             aria-label={`Show photo ${i + 1}`}
                             aria-pressed={i === active}
-                            onClick={() => setActive(i)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setActive(i);
+                            }}
                         >
                             <img src={src} alt="" loading="lazy" />
                         </button>

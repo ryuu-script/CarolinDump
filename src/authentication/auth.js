@@ -93,7 +93,7 @@ let cachedUser = null;
 Purpose: Reads the signed-in user from storage.
 Parameters: NULL
 Return value:
-       type: { email: string, name: string, picture: string } | null
+       type: { email: string, name: string, picture: string, idToken?: string, exp?: number } | null
        description: the stored user if valid and from the allowed domain, otherwise null (guest)
 */
 function readUser() {
@@ -107,6 +107,25 @@ function readUser() {
         cachedUser = null;
     }
     return cachedUser;
+}
+
+/*
+Purpose: Checks whether a signed-in user holds an unexpired Google ID token that the API server can verify.
+Parameters:
+       user: user object returned by useUser(), or null
+Return value:
+       type: boolean
+       description: true when user has a valid Carolinian email and an unexpired idToken
+*/
+export function hasValidSession(user) {
+    return Boolean(
+        user &&
+        isCarolinian(user.email) &&
+        typeof user.idToken === "string" &&
+        user.idToken.length > 0 &&
+        typeof user.exp === "number" &&
+        user.exp * 1000 > Date.now()
+    );
 }
 
 /*
@@ -131,7 +150,7 @@ function subscribe(callback) {
 Purpose: React hook that gives components the current signed-in user and updates them when it changes.
 Parameters: NULL
 Return value:
-       type: { email: string, name: string, picture: string } | null
+       type: { email: string, name: string, picture: string, idToken?: string, exp?: number } | null
        description: the signed-in user, or null for a guest
 */
 export const useUser = () => useSyncExternalStore(subscribe, readUser, () => null);
@@ -139,7 +158,7 @@ export const useUser = () => useSyncExternalStore(subscribe, readUser, () => nul
 /*
 Purpose: Saves the signed-in user to storage and notifies the current tab that the user changed.
 Parameters:
-       user: { email, name, picture } object to store
+       user: { email, name, picture, idToken, exp } object to store
 Return value: NULL
        type: NULL
        description: NULL
@@ -220,7 +239,8 @@ Return value:
 function evaluate(params, to) {
     if (params.get("error")) return { status: "cancelled", to };
 
-    const claims = decodeJwt(params.get("id_token") ?? "");
+    const idToken = params.get("id_token") ?? "";
+    const claims = decodeJwt(idToken);
     const nonce = read(NONCE_KEY);
     remove(NONCE_KEY);
 
@@ -238,6 +258,8 @@ function evaluate(params, to) {
         email: claims.email.toLowerCase(),
         name: claims.name ?? "",
         picture: claims.picture ?? "",
+        idToken,
+        exp: claims.exp,
     });
     return { status: "ok", to };
 }

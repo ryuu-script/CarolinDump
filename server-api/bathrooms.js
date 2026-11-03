@@ -1,5 +1,5 @@
 /*
-Purpose: Fetches and cleans a building's bathroom rows for the building pages.
+Purpose: Fetches and cleans a building's bathroom rows for the building and review submission pages.
 Dependencies:
          JSX: NULL
          JS: buildings.js, server_connect.js (the /api/bathrooms route it calls at runtime)
@@ -14,8 +14,8 @@ Purpose: Turns a raw database row into the shape the page expects.
 Parameters:
        row: one raw bathroom row from the API or database
 Return value:
-       type: { img: string[], room_code: string, unit: string, rating: number }
-       description: the cleaned row, with at most 3 images and a rating clamped to 1..5
+       type: { id: number | null, img: string[], room_code: string, unit: string, rating: number }
+       description: the cleaned row, with database id, at most 3 images and a rating clamped to 1..5
 */
 function normalizeRow(row) {
     const rawImages = Array.isArray(row.img)
@@ -23,8 +23,10 @@ function normalizeRow(row) {
         : [row.img, row.img1, row.img2, row.img3];
 
     const rating = Math.round(Number(row.rating));
+    const rawId = Number(row.id);
 
     return {
+        id: Number.isInteger(rawId) && rawId > 0 ? rawId : null,
         img: rawImages.filter((src) => typeof src === "string" && src.trim() !== "").slice(0, 3),
         room_code: String(row.room_code ?? "").trim(),
         unit: String(row.unit ?? "").trim(),
@@ -43,7 +45,7 @@ Parameters:
        code: building code, e.g. "LB"
 Return value:
        type: Object[]
-       description: 16 raw mock rows (4 floors x 4 rooms) with room_code, unit, rating and no images
+       description: 16 raw mock rows (4 floors x 4 rooms) with id, room_code, unit, rating and no images
 */
 function mockRows(code) {
     const prefix = code.toUpperCase();
@@ -52,6 +54,7 @@ function mockRows(code) {
         for (let n = 1; n <= 4; n++) {
             const i = rows.length;
             rows.push({
+                id: i + 1,
                 img: [],
                 room_code: `${prefix}${floor}${String(n * 7).padStart(2, "0")}`,
                 unit: MOCK_UNITS[i % MOCK_UNITS.length],
@@ -81,7 +84,7 @@ const wait = (ms, signal) =>
     });
 
 /*
-Purpose: Loads every bathroom row that belongs to a building so the building page can show one card per row.
+Purpose: Loads every bathroom row that belongs to a building so the building and submit review pages can list its units.
 Parameters:
        buildingId: building id from the URL, e.g. "lb"
        options: optional object; options.signal is an AbortSignal to cancel the request

@@ -1,5 +1,5 @@
 /*
-Purpose: Lists and sorts all bathrooms of the building chosen on the campus map.
+Purpose: Lists and sorts all bathrooms of the building chosen on the campus map, and opens Submit Review when a unit card is chosen.
 Dependencies:
          JSX: components/Bathroom_Card.jsx, components/Sort_Controls.jsx
          CSS: stylesheets/building.css
@@ -7,7 +7,7 @@ Dependencies:
 */
 
 // imports
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import BathroomCard from "../components/Bathroom_Card.jsx";
 import SortControls from "../components/Sort_Controls.jsx";
@@ -78,7 +78,8 @@ Return value:
 function Building_Current() {
     const { buildingId } = useParams();
     const navigate = useNavigate();
-    const building = getBuilding(buildingId);
+    const normalizedBuildingId = String(buildingId ?? "").toLowerCase();
+    const building = getBuilding(normalizedBuildingId);
 
     const [rows, setRows] = useState([]);
     const [status, setStatus] = useState("loading"); // loading | ready | error
@@ -93,7 +94,7 @@ function Building_Current() {
         const controller = new AbortController();
         setStatus("loading");
 
-        fetchBathrooms(buildingId, { signal: controller.signal })
+        fetchBathrooms(normalizedBuildingId, { signal: controller.signal })
             .then((data) => {
                 setRows(data);
                 setStatus("ready");
@@ -105,7 +106,7 @@ function Building_Current() {
             });
 
         return () => controller.abort();
-    }, [buildingId, building, attempt]);
+    }, [normalizedBuildingId, building, attempt]);
 
     const sorted = useMemo(() => sortRows(rows, sortKey, order), [rows, sortKey, order]);
 
@@ -117,6 +118,43 @@ function Building_Current() {
            description: NULL
     */
     const goBack = () => (window.history.state?.idx > 0 ? navigate(-1) : navigate("/"));
+
+    /*
+    Purpose: Opens the Submit Review page prefilled and locked to the selected comfort room unit.
+    Parameters:
+           selectedRow: bathroom card data ({ id, room_code, unit })
+    Return value:
+           type: void
+           description: NULL
+    */
+    const handleSelectBathroom = useCallback(
+        (selectedRow) => {
+            if (!building) return;
+            const params = new URLSearchParams();
+            params.set("building", normalizedBuildingId);
+            if (Number.isInteger(selectedRow.id) && selectedRow.id > 0) {
+                params.set("bathroom", String(selectedRow.id));
+            }
+            if (selectedRow.room_code) params.set("room", selectedRow.room_code);
+            if (selectedRow.unit) params.set("unit", selectedRow.unit);
+            params.set("locked", "1");
+
+            navigate(`/reviews/submit?${params.toString()}`, {
+                state: {
+                    prefill: {
+                        buildingId: normalizedBuildingId,
+                        buildingCode: building.code,
+                        buildingName: building.name,
+                        bathroomId: selectedRow.id ?? null,
+                        room_code: selectedRow.room_code,
+                        unit: selectedRow.unit,
+                        locked: true,
+                    },
+                },
+            });
+        },
+        [building, navigate, normalizedBuildingId]
+    );
 
     if (!building) {
         return (
@@ -183,7 +221,14 @@ function Building_Current() {
             {status === "ready" && rows.length > 0 && (
                 <section className="building-grid" aria-label={`Bathrooms in ${building.name}`}>
                     {sorted.map((row, i) => (
-                        <BathroomCard key={`${row.room_code}-${i}`} index={i} {...row} />
+                        <BathroomCard
+                            key={row.id ?? `${row.room_code}-${row.unit}-${i}`}
+                            index={i}
+                            buildingId={normalizedBuildingId}
+                            building={building}
+                            onSelect={handleSelectBathroom}
+                            {...row}
+                        />
                     ))}
                 </section>
             )}
