@@ -201,6 +201,22 @@ Section: Bathroom_Card
 .bathroom-card:nth-child(6n+5) { --hue: var(--blue); }
 .bathroom-card:nth-child(6n)   { --hue: var(--lavender); }
 
+.bathroom-card.is-clickable {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bathroom-card.is-clickable:focus-visible {
+    outline: 2px solid var(--hue);
+    outline-offset: 3px;
+    border-color: var(--hue);
+}
+
+.bathroom-card.is-clickable:active {
+    transform: scale(0.98);
+    border-color: var(--hue);
+}
+
 @media (hover: hover) {
     .bathroom-card:hover {
         transform: translateY(calc(var(--u) * -0.2));
