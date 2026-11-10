@@ -321,15 +321,17 @@ The production app runs on the school server at `~/carolindump.dcism.org/Carolin
 
 | # | Name | Role | GitHub |
 | :---: | --- | --- | --- |
-| 1 | _Salang, Christian Jule Ong_ | _Project Lead / Senior Developer_ | [@ryuu-script](https://github.com/ryuu-script) |
-| 2 | _Rubi, Joshua Stephen Dale_ | _Junior Developer_ | [@username](https://github.com/username) |
-| 3 | _Perilla, Leopert Bryan_ | _Junior Developer_ | [@username](https://github.com/username) |
-| 4 | _Taoy, Lance Vincent_ | _Documentation Specialist_ | [@username](https://github.com/username) |
+| 1 | _Salang, Christian Jule Ong_ | _Project Lead / Developer_ | [@ryuu-script](https://github.com/ryuu-script) |
+| 2 | _Rubi, Joshua Stephen Dale_ | _Developer_ | [@Lostconfii](https://github.com/Lostconfii) |
+| 3 | _Perilla, Leopert Bryan_ | _Developer_ | [@httpsleobryn](https://github.com/httpsleobryn) |
+| 4 | _Dominguez, Jireh_ | _Developer_ | [@KyojuroRengoku-sudo](https://github.com/KyojuroRengoku-sudo) |
+| 5 | _Taoy, Lance Vincent_ | _Documentation Specialist_ | [@username](https://github.com/username) |
+
 
 ---
 
 <div align="center">
 
-Made by students of the Department of Computer, Information Sciences and Mathematics (DCISM).
+Created by: DCISM's Tubolinians.
 
 </div>
