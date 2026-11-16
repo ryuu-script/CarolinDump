@@ -1,4 +1,3 @@
-
 /*
 Purpose: Displays a bathroom with photos, room code, unit, average ruby rating and review count.
 Dependencies:
@@ -46,6 +45,23 @@ function buildSubmitUrl(buildingId, id, room_code, unit) {
     return `/reviews/submit?${params.toString()}`;
 }
 
+/*
+Purpose: Shows one bathroom with its photo gallery, room code, unit, 0-5 ruby rating and review count, navigating to Submit Review when clicked.
+Parameters:
+       id: database id of the bathroom row, if available
+       buildingId: building route id such as "lb"
+       building: building metadata object ({ code, name }), if available
+       onSelect: optional callback invoked when the card is activated
+       img: list of photo URLs (only the first 3 are used)
+       room_code: room code such as LB446
+       unit: unit or gender label of the bathroom
+       rating: rating of the bathroom, kept between 0 and 5
+       review_count: total number of submitted reviews for this bathroom unit
+       index: position in the grid, used to stagger the entry animation
+Return value:
+       type: JSX.Element
+       description: the interactive bathroom card
+*/
 function BathroomCard({
     id = null,
     buildingId = "",
@@ -54,7 +70,7 @@ function BathroomCard({
     img = [],
     room_code,
     unit,
-    rating,
+    rating = 0,
     review_count = 0,
     index = 0,
 }) {
@@ -62,14 +78,13 @@ function BathroomCard({
     const [active, setActive] = useState(0);
 
     const photos = img.slice(0, 3);
-
-    const numericRating = Number(rating);
-    const validRating = Number.isFinite(numericRating)
-        ? Math.min(MAX_RATING, Math.max(0, numericRating))
-        : 0;
-
-    const stars = Math.round(validRating);
     const count = Math.max(0, Number(review_count) || 0);
+    const numericRating = Number(rating);
+    const validRating =
+        count > 0 && Number.isFinite(numericRating)
+            ? Math.min(MAX_RATING, Math.max(0, numericRating))
+            : 0;
+    const stars = Math.round(validRating);
 
     const interactive = Boolean(onSelect || buildingId);
 
@@ -84,6 +99,7 @@ function BathroomCard({
                 room_code,
                 unit,
                 rating: validRating,
+                review_count: count,
             });
             return;
         }

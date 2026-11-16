@@ -28,7 +28,7 @@ const pool = mysql.createPool({
 const BUILDINGS = new Set(["LB", "AF", "MR", "CHURCH", "JB", "ES", "FO", "EO", "SM", "PE", "RH"]);
 const ALLOWED_EMAIL_DOMAIN = "usc.edu.ph";
 const GOOGLE_CERTS_URL = "https://www.googleapis.com/oauth2/v3/certs";
-const MAX_COMMENT_LENGTH = 500;
+const MAX_COMMENT_LENGTH = 150;
 
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN ?? "http://localhost:5173" }));
