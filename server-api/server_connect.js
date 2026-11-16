@@ -166,21 +166,49 @@ Return value:
        type: Promise<void>
        description: sends JSON with 200 on success, 404 for an unknown building, or 500 on a database error
 */
+
 app.get("/api/bathrooms/:table", async (req, res) => {
     const building = req.params.table.toUpperCase();
-    if (!BUILDINGS.has(building)) return res.status(404).json({ error: "Unknown building" });
+
+    if (!BUILDINGS.has(building)) {
+        return res.status(404).json({ error: "Unknown building" });
+    }
 
     try {
         const [rows] = await pool.execute(
-            "SELECT id, room_code, unit, rating, img1, img2, img3 FROM bathrooms WHERE building = ? ORDER BY room_code, unit",
+            `SELECT
+                b.id,
+                b.room_code,
+                b.unit,
+                COALESCE(
+                    (
+                        SELECT ROUND(AVG(r.rating), 1)
+                        FROM reviews r
+                        WHERE r.bathroom_id = b.id
+                    ),
+                    b.rating
+                ) AS rating,
+                (
+                    SELECT COUNT(*)
+                    FROM reviews r
+                    WHERE r.bathroom_id = b.id
+                ) AS review_count,
+                b.img1,
+                b.img2,
+                b.img3
+            FROM bathrooms b
+            WHERE b.building = ?
+            ORDER BY b.room_code, b.unit`,
             [building]
         );
-        res.json(rows);
+
+        return res.json(rows);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Database error" });
+        return res.status(500).json({ error: "Database error" });
     }
 });
+
 
 /*
 Purpose: Handles POST /api/reviews by verifying USC Google sign-in, checking building-unit relationships, and saving the review.

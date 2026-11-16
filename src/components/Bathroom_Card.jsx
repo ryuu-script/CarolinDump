@@ -1,26 +1,18 @@
+
 /*
-Purpose: Displays one bathroom (photos, room code, unit and ruby rating) in the building page grid and opens Submit Review when clicked.
+Purpose: Displays a bathroom with photos, room code, unit, average ruby rating and review count.
 Dependencies:
          JSX: NULL
          CSS: stylesheets/building.css
          JS: NULL
 */
 
-// imports
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../stylesheets/building.css";
 
 const MAX_RATING = 5;
 
-/*
-Purpose: Draws a single ruby gem used as one point of the rating, filled when earned and muted when not.
-Parameters:
-       on: true if this ruby is earned
-Return value:
-       type: JSX.Element
-       description: the ruby icon
-*/
 function Ruby({ on }) {
     return (
         <svg
@@ -37,43 +29,23 @@ function Ruby({ on }) {
     );
 }
 
-/*
-Purpose: Builds the Submit Review URL with query parameters for a selected building and comfort room unit.
-Parameters:
-       buildingId: building route id such as "lb"
-       id: database id of the bathroom unit, if available
-       room_code: room code such as "LB107"
-       unit: comfort room unit label such as "Left Stall"
-Return value:
-       type: string
-       description: relative URL to /reviews/submit with prefill query parameters
-*/
 function buildSubmitUrl(buildingId, id, room_code, unit) {
     const params = new URLSearchParams();
+
     params.set("building", String(buildingId).toLowerCase());
-    if (Number.isInteger(id) && id > 0) params.set("bathroom", String(id));
+
+    if (Number.isInteger(id) && id > 0) {
+        params.set("bathroom", String(id));
+    }
+
     if (room_code) params.set("room", room_code);
     if (unit) params.set("unit", unit);
+
     params.set("locked", "1");
+
     return `/reviews/submit?${params.toString()}`;
 }
 
-/*
-Purpose: Shows one bathroom with its photo gallery, room code, unit and 1-5 ruby rating, navigating to Submit Review when clicked.
-Parameters:
-       id: database id of the bathroom row, if available
-       buildingId: building route id such as "lb"
-       building: building metadata object ({ code, name }), if available
-       onSelect: optional callback invoked when the card is activated
-       img: list of photo URLs (only the first 3 are used)
-       room_code: room code such as LB446
-       unit: unit or gender label of the bathroom
-       rating: rating of the bathroom, rounded and kept between 1 and 5
-       index: position in the grid, used to stagger the entry animation
-Return value:
-       type: JSX.Element
-       description: the interactive bathroom card
-*/
 function BathroomCard({
     id = null,
     buildingId = "",
@@ -83,53 +55,62 @@ function BathroomCard({
     room_code,
     unit,
     rating,
+    review_count = 0,
     index = 0,
 }) {
     const navigate = useNavigate();
     const [active, setActive] = useState(0);
+
     const photos = img.slice(0, 3);
-    const stars = Math.min(MAX_RATING, Math.max(1, Math.round(rating)));
+
+    const numericRating = Number(rating);
+    const validRating = Number.isFinite(numericRating)
+        ? Math.min(MAX_RATING, Math.max(0, numericRating))
+        : 0;
+
+    const stars = Math.round(validRating);
+    const count = Math.max(0, Number(review_count) || 0);
+
     const interactive = Boolean(onSelect || buildingId);
 
-    /*
-    Purpose: Navigates to Submit Review with this card's building and unit prefilled, or runs onSelect when provided.
-    Parameters: NULL
-    Return value:
-           type: void
-           description: NULL
-    */
     const handleActivate = () => {
         if (!interactive) return;
+
         if (onSelect) {
-            onSelect({ id, buildingId, building, room_code, unit, rating });
+            onSelect({
+                id,
+                buildingId,
+                building,
+                room_code,
+                unit,
+                rating: validRating,
+            });
             return;
         }
+
         const normalizedBuildingId = String(buildingId).toLowerCase();
-        navigate(buildSubmitUrl(normalizedBuildingId, id, room_code, unit), {
-            state: {
-                prefill: {
-                    buildingId: normalizedBuildingId,
-                    buildingCode: building?.code ?? normalizedBuildingId.toUpperCase(),
-                    buildingName: building?.name ?? "",
-                    bathroomId: id,
-                    room_code,
-                    unit,
-                    locked: true,
+
+        navigate(
+            buildSubmitUrl(normalizedBuildingId, id, room_code, unit),
+            {
+                state: {
+                    prefill: {
+                        buildingId: normalizedBuildingId,
+                        buildingCode: building?.code ?? normalizedBuildingId.toUpperCase(),
+                        buildingName: building?.name ?? "",
+                        bathroomId: id,
+                        room_code,
+                        unit,
+                        locked: true,
+                    },
                 },
-            },
-        });
+            }
+        );
     };
 
-    /*
-    Purpose: Activates the card when Enter or Space is pressed while focus is on the card itself.
-    Parameters:
-           e: keyboard event
-    Return value:
-           type: void
-           description: NULL
-    */
     const handleKeyDown = (e) => {
         if (e.target !== e.currentTarget) return;
+
         if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             handleActivate();
@@ -144,7 +125,7 @@ function BathroomCard({
             tabIndex={interactive ? 0 : undefined}
             aria-label={
                 interactive
-                    ? `${room_code} ${unit}, rated ${stars} out of ${MAX_RATING}. Select to submit a review.`
+                    ? `${room_code} ${unit}, rated ${validRating.toFixed(1)} out of 5, based on ${count} reviews. Select to submit a review.`
                     : undefined
             }
             onClick={interactive ? handleActivate : undefined}
@@ -159,12 +140,18 @@ function BathroomCard({
                         loading="lazy"
                     />
                 ) : (
-                    <span className="bathroom-photo-empty">No photos</span>
+                    <span className="bathroom-photo-empty">
+                        No photos
+                    </span>
                 )}
             </div>
 
             {photos.length > 1 && (
-                <div className="bathroom-thumbs" role="group" aria-label={`${room_code} photos`}>
+                <div
+                    className="bathroom-thumbs"
+                    role="group"
+                    aria-label={`${room_code} photos`}
+                >
                     {photos.map((src, i) => (
                         <button
                             key={src + i}
@@ -185,14 +172,34 @@ function BathroomCard({
 
             <div className="bathroom-info">
                 <h2 className="bathroom-room">{room_code}</h2>
+
                 <p className="bathroom-unit">{unit}</p>
-                <p className="bathroom-rating" role="img" aria-label={`Rating ${stars} out of ${MAX_RATING}`}>
+
+                <div
+                    className="bathroom-rating"
+                    role="img"
+                    aria-label={`${validRating.toFixed(1)} out of 5 Rubies, ${count} reviews`}
+                >
                     <span className="bathroom-stars" aria-hidden="true">
                         {Array.from({ length: MAX_RATING }, (_, i) => (
                             <Ruby key={i} on={i < stars} />
                         ))}
                     </span>
-                    <span className="bathroom-rating-num" aria-hidden="true">{stars}/{MAX_RATING}</span>
+
+                    <span className="bathroom-rating-num" aria-hidden="true">
+                        {validRating.toFixed(1)}/5
+                    </span>
+                </div>
+
+                <p
+                    className="bathroom-review-count"
+                    style={{
+                        fontSize: "0.8rem",
+                        marginTop: "5px",
+                        opacity: 0.75,
+                    }}
+                >
+                    {count} {count === 1 ? "review" : "reviews"}
                 </p>
             </div>
         </article>
