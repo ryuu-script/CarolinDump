@@ -24,14 +24,6 @@ import "../stylesheets/submit_review.css";
 
 const MAX_RATING = 5;
 
-const RATING_LABELS = {
-    1: "1/5 — Avoid if possible",
-    2: "2/5 — Needs maintenance",
-    3: "3/5 — Usable / Average",
-    4: "4/5 — Clean & comfortable",
-    5: "5/5 — Spotless gem!",
-};
-
 const BUILDING_OPTIONS = Object.entries(BUILDINGS).map(([id, info]) => ({
     value: id,
     label: `${info.code} — ${info.name}`,
@@ -94,17 +86,18 @@ function extractPrefill(location, searchParams) {
 }
 
 /*
-Purpose: Draws one Stephen's Ruby gem SVG icon in either earned (filled) or muted state.
+Purpose: Draws one Stephen's Ruby gem SVG icon in either earned (filled) or muted state, with optional hover shimmer.
 Parameters:
        on: true when the ruby is active/filled
+       shimmer: true when the ruby is being hovered and should glow/shimmer
 Return value:
        type: JSX.Element
        description: the ruby gem SVG
 */
-function RubyGem({ on }) {
+function RubyGem({ on, shimmer = false }) {
     return (
         <svg
-            className={`submit-ruby-svg ${on ? "is-on" : "is-off"}`}
+            className={`submit-ruby-svg ${on ? "is-on" : "is-off"}${shimmer ? " is-shimmering" : ""}`}
             viewBox="0 0 24 24"
             aria-hidden="true"
             focusable="false"
@@ -113,6 +106,10 @@ function RubyGem({ on }) {
             <path className="ruby-light" d="M7 3h10l-2.5 6h-5z" />
             <path className="ruby-light-soft" d="M7 3 9.5 9H2z" />
             <path className="ruby-shade" d="M17 3l5 6h-7.5zM9.5 9h5L12 21z" />
+            <path
+                className="ruby-sparkle"
+                d="M17.5 2l.7 2.1 2.1.7-2.1.7-.7 2.1-.7-2.1-2.1-.7 2.1-.7z"
+            />
         </svg>
     );
 }
@@ -254,7 +251,6 @@ function SelectDropdown({
                                     }}
                                 >
                                     <span>{opt.label}</span>
-                                    {opt.sublabel && <span className="submit-select-option-sub">{opt.sublabel}</span>}
                                 </button>
                             </li>
                         );
@@ -311,6 +307,7 @@ function RubyRatingInput({ labelId, value, disabled = false, onChange }) {
                 {Array.from({ length: MAX_RATING }, (_, idx) => {
                     const score = idx + 1;
                     const checked = value === score;
+                    const isShimmering = hovered > 0 && score <= hovered;
                     return (
                         <button
                             key={score}
@@ -318,21 +315,17 @@ function RubyRatingInput({ labelId, value, disabled = false, onChange }) {
                             role="radio"
                             aria-checked={checked}
                             aria-label={`${score} out of ${MAX_RATING} Rubies`}
-                            className="submit-ruby-btn"
+                            className={`submit-ruby-btn${isShimmering ? " is-shimmering" : ""}`}
                             disabled={disabled}
                             onMouseEnter={() => !disabled && setHovered(score)}
                             onClick={() => onChange(score)}
                             onKeyDown={(e) => handleKeyDown(e, score)}
                         >
-                            <RubyGem on={score <= activeRating} />
+                            <RubyGem on={score <= activeRating} shimmer={isShimmering} />
                         </button>
                     );
                 })}
             </div>
-
-            <span className={`submit-rating-caption${activeRating === 0 ? " is-empty" : ""}`} aria-live="polite">
-                {activeRating > 0 ? RATING_LABELS[activeRating] : "Tap a ruby to rate (1–5)"}
-            </span>
         </div>
     );
 }
@@ -436,7 +429,6 @@ function SubmitReviewView({ initialPrefill }) {
             units.map((u) => ({
                 value: unitKeyOf(u),
                 label: `${u.room_code} — ${u.unit}`,
-                sublabel: `Current rating: ${u.rating}/${MAX_RATING} Rubies`,
             })),
         [units]
     );
@@ -710,7 +702,7 @@ function SubmitReviewView({ initialPrefill }) {
                 <header className="submit-header">
                     <h1 id="submit-review-heading" className="submit-title">Submit a Review</h1>
                     <p className="submit-subtitle">
-                        Rate a campus comfort room with Stephen&apos;s Rubies to help fellow Carolinians.
+                        We&apos;d like to hear from you.
                     </p>
                 </header>
 
@@ -882,7 +874,7 @@ function SubmitReviewView({ initialPrefill }) {
                                 </label>
                                 <span
                                     className={`submit-char-count${
-                                        comment.length >= MAX_COMMENT_LENGTH - 50 ? " is-near-limit" : ""
+                                        comment.length >= MAX_COMMENT_LENGTH - 20 ? " is-near-limit" : ""
                                     }`}
                                 >
                                     {comment.length}/{MAX_COMMENT_LENGTH}
@@ -891,7 +883,7 @@ function SubmitReviewView({ initialPrefill }) {
                             <textarea
                                 id={commentId}
                                 className="submit-textarea"
-                                placeholder="Share how clean it was, whether water, soap, tissue, or flush/bidet worked…"
+                                placeholder="Share your experience with us…"
                                 maxLength={MAX_COMMENT_LENGTH}
                                 value={comment}
                                 disabled={submitting}

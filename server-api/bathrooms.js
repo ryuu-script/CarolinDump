@@ -1,4 +1,3 @@
-
 /*
 Purpose: Fetches and cleans a building's bathroom rows for the building and review submission pages.
 Dependencies:
@@ -11,14 +10,25 @@ import { getBuilding } from "../src/data/buildings.js";
 const USE_MOCK_DATA = false;
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
+/*
+Purpose: Turns a raw database row into the shape the building and review pages expect.
+Parameters:
+       row: one raw bathroom row from the API or database
+Return value:
+       type: { id: number | null, img: string[], room_code: string, unit: string, rating: number, review_count: number }
+       description: the cleaned row with database id, up to 3 images, rating (0 when unreviewed, 0..5 otherwise), and review_count
+*/
 function normalizeRow(row) {
     const rawImages = Array.isArray(row.img)
         ? row.img
         : [row.img, row.img1, row.img2, row.img3];
 
-    const ratingValue = Number(row.rating);
     const rawId = Number(row.id);
-    const reviewCount = Number(row.review_count ?? 0);
+    const rawReviewCount = Number(row.review_count ?? 0);
+    const reviewCount = Number.isFinite(rawReviewCount)
+        ? Math.max(0, rawReviewCount)
+        : 0;
+    const ratingValue = Number(row.rating);
 
     return {
         id: Number.isInteger(rawId) && rawId > 0 ? rawId : null,
@@ -27,12 +37,11 @@ function normalizeRow(row) {
             .slice(0, 3),
         room_code: String(row.room_code ?? "").trim(),
         unit: String(row.unit ?? "").trim(),
-        rating: Number.isFinite(ratingValue)
-            ? Math.min(5, Math.max(1, ratingValue))
-            : 1,
-        review_count: Number.isFinite(reviewCount)
-            ? Math.max(0, reviewCount)
-            : 0,
+        rating:
+            reviewCount > 0 && Number.isFinite(ratingValue)
+                ? Math.min(5, Math.max(0, ratingValue))
+                : 0,
+        review_count: reviewCount,
     };
 }
 

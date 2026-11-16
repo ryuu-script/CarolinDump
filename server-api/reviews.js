@@ -7,7 +7,7 @@ Dependencies:
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "/api";
 
-export const MAX_COMMENT_LENGTH = 500;
+export const MAX_COMMENT_LENGTH = 150;
 
 /*
 Purpose: Submits a student's comfort room review with their Google ID token for backend verification.
