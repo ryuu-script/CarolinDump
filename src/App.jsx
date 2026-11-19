@@ -19,6 +19,7 @@ import Login_Admin from './pages/Login_Admin.jsx'
 import RequireAdmin from './components/Require_Admin.jsx'
 import Login_Google from './pages/Login_Google.jsx'
 import Submit_Review from './pages/Submit_Review.jsx'
+import User_Reviews from './pages/User_Reviews.jsx'
 
 /*
 Purpose: Temporary page shown for routes that are not built yet.
@@ -49,7 +50,7 @@ function App() {
                 <Route path="/admin" element={<RequireAdmin><Dashboard role="admin" /></RequireAdmin>} />
                 <Route path="/building/:buildingId" element={<Building_Current />} />
                 <Route path="/auth/callback" element={<Login_Google />} />
-                <Route path="/reviews" element={<PlaceholderPage title="User reviews" />} />
+                <Route path="/reviews" element={<User_Reviews />} />
                 <Route path="/reviews/submit" element={<Submit_Review />} />
                 <Route path="/sudo" element={<RequireAdmin><PlaceholderPage title="Sudo Mode" /></RequireAdmin>} />
                 <Route path="/placeholder" element={<PlaceholderPage />} />
